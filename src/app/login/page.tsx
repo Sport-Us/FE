@@ -1,4 +1,3 @@
-
 "use client";
 
 import Image from "next/image";
@@ -9,6 +8,16 @@ export default function Login() {
   return (
     <div className="flex flex-col items-center min-h-screen bg-white px-4">
       <Header title="로그인" />
+
+      <div className="mt-2 mb-10">
+        <Image
+          src="/logo.png"
+          alt="Logo"
+          width={130}
+          height={130}
+          className="mt-10 mb-10"
+        />
+      </div>
 
       <div className="w-full max-w-xs space-y-[28px] mb-[120px]">
         <input
