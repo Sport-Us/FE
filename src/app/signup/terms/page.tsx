@@ -1,11 +1,14 @@
-
 "use client";
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+
 import Header from "../../components/Header";
 
 export default function TermsAgreement() {
+  const router = useRouter();
+
   const [allChecked, setAllChecked] = useState(false);
   const [checkedItems, setCheckedItems] = useState({
     privacyPolicy: false,
@@ -35,11 +38,17 @@ export default function TermsAgreement() {
     );
   };
 
+  const handleNextClick = () => {
+    if (isNextButtonEnabled) {
+      router.push("/signup/form");
+    }
+  };
+
   return (
-    <div className="flex flex-col items-start min-h-screen bg-white px-4 relative">
+    <div className="flex flex-col items-center min-h-screen bg-white px-4 relative">
       <Header title="회원가입" />
 
-      <div className="text-left mt-[62px] mb-[28px]">
+      <div className="w-full max-w-xs text-left mt-[62px] mb-[28px]">
         <p className="text-[18px] font-semibold text-[#1A1A1B] leading-[27px]">
           Sport:Us 이용을 위해
         </p>
@@ -52,43 +61,47 @@ export default function TermsAgreement() {
         className="flex items-center h-[52px] px-[15px] gap-[9px] w-full max-w-xs border border-[#E8E8E8] rounded-[10px] bg-white mb-4 cursor-pointer"
         onClick={handleAllCheckedChange}
       >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="16"
-          height="17"
-          viewBox="0 0 16 17"
-          fill={allChecked ? "#1A1A1B" : "#D2D3D3"}
-        >
-          <circle cx="8" cy="8.5" r="8" />
-          <path
-            d="M4.8 8.8L7.5 10.9L11.2 6.1"
-            stroke="white"
-            strokeLinecap="round"
-          />
-        </svg>
+        <div className="flex items-center">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="17"
+            viewBox="0 0 16 17"
+            fill={allChecked ? "#1A1A1B" : "#D2D3D3"}
+          >
+            <circle cx="8" cy="8.5" r="8" />
+            <path
+              d="M4.8 8.8L7.5 10.9L11.2 6.1"
+              stroke="white"
+              strokeLinecap="round"
+            />
+          </svg>
+        </div>
         <span className="font-semibold text-[16px]">전체 동의</span>
       </div>
 
-      <div className="w-full max-w-xs space-y-4 mb-16 ml-[15px]">
+      <div className="w-full max-w-xs space-y-4 mb-16 ml-[30px]">
         <div className="flex items-center gap-[9px]">
           <div
             className="flex items-center gap-[9px] cursor-pointer"
             onClick={() => handleItemCheckedChange("privacyPolicy")}
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="17"
-              viewBox="0 0 16 17"
-              fill={checkedItems.privacyPolicy ? "#1A1A1B" : "#D2D3D3"}
-            >
-              <circle cx="8" cy="8.5" r="8" />
-              <path
-                d="M4.8 8.8L7.5 10.9L11.2 6.1"
-                stroke="white"
-                strokeLinecap="round"
-              />
-            </svg>
+            <div className="flex items-center">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="17"
+                viewBox="0 0 16 17"
+                fill={checkedItems.privacyPolicy ? "#1A1A1B" : "#D2D3D3"}
+              >
+                <circle cx="8" cy="8.5" r="8" />
+                <path
+                  d="M4.8 8.8L7.5 10.9L11.2 6.1"
+                  stroke="white"
+                  strokeLinecap="round"
+                />
+              </svg>
+            </div>
             <span className="text-[14px]">(필수) 개인정보 처리방침</span>
           </div>
           <Link
@@ -104,20 +117,22 @@ export default function TermsAgreement() {
             className="flex items-center gap-[9px] cursor-pointer"
             onClick={() => handleItemCheckedChange("serviceTerms")}
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="17"
-              viewBox="0 0 16 17"
-              fill={checkedItems.serviceTerms ? "#1A1A1B" : "#D2D3D3"}
-            >
-              <circle cx="8" cy="8.5" r="8" />
-              <path
-                d="M4.8 8.8L7.5 10.9L11.2 6.1"
-                stroke="white"
-                strokeLinecap="round"
-              />
-            </svg>
+            <div className="flex items-center">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="17"
+                viewBox="0 0 16 17"
+                fill={checkedItems.serviceTerms ? "#1A1A1B" : "#D2D3D3"}
+              >
+                <circle cx="8" cy="8.5" r="8" />
+                <path
+                  d="M4.8 8.8L7.5 10.9L11.2 6.1"
+                  stroke="white"
+                  strokeLinecap="round"
+                />
+              </svg>
+            </div>
             <span className="text-[14px]">(필수) 서비스 이용약관</span>
           </div>
           <Link
@@ -130,6 +145,7 @@ export default function TermsAgreement() {
       </div>
 
       <button
+        onClick={handleNextClick}
         disabled={!isNextButtonEnabled}
         className={`flex justify-center items-center w-[343px] h-[50px] rounded-[10px] text-[14px] font-semibold absolute left-1/2 transform -translate-x-1/2 bottom-[68px] ${
           isNextButtonEnabled
