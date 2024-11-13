@@ -8,7 +8,7 @@ export default function Footer() {
   const isActive = (path: string) => pathname === path ? "text-[#222] stroke-[#222]" : "text-gray-500 stroke-[#8E9398]";
 
   return (
-    <footer className="flex w-full items-start bg-white fixed bottom-0 left-1/2 transform -translate-x-1/2">
+    <footer className="fixed bottom-0 left-1/2 transform -translate-x-1/2 max-w-[375px] w-full bg-white flex items-start mx-auto">
       <Link href="/home" className="flex w-[93.75px] py-2 flex-col items-center gap-0.5 flex-shrink-0">
         <svg
           xmlns="http://www.w3.org/2000/svg"
