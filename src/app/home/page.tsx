@@ -64,7 +64,10 @@ export default function Home() {
 
   return (
     <div className="relative w-full h-screen">
-      <div id="map" className="absolute top-0 left-0 w-full h-full"></div>
+      <div
+        id="map"
+        className="absolute top-0 left-1/2 transform -translate-x-1/2 max-w-[375px] w-full h-full"
+      ></div>
 
       <div className="absolute top-0 w-full flex flex-col items-center ">
         <div className="w-full h-[103px] flex-shrink-0 bg-white flex flex-col items-center gap-[8px] p-[10px]">
