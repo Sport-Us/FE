@@ -7,6 +7,8 @@ export default function Home() {
   const [selectedTab, setSelectedTab] = useState<"체육 강좌" | "체육 시설">(
     "체육 강좌"
   );
+  const [selectedCategory, setSelectedCategory] = useState("전체");
+
   const [map, setMap] = useState<any>(null);
 
   useEffect(() => {
@@ -32,7 +34,7 @@ export default function Home() {
 
     const handleLocationError = (error: GeolocationPositionError) => {
       console.error("위치 정보를 가져오는 데 실패했습니다:", error);
-      initMap(37.5665, 126.978); 
+      initMap(37.5665, 126.978);
     };
 
     const loadMapWithCurrentLocation = () => {
@@ -57,6 +59,8 @@ export default function Home() {
       loadMapWithCurrentLocation();
     }
   }, []);
+
+  const categories = ["전체", "실내 운동", "실외 운동"];
 
   return (
     <div className="relative w-full h-screen">
@@ -142,9 +146,31 @@ export default function Home() {
             />
           </div>
         </div>
-      </div>
-      <Footer />
 
+        <div className="flex w-[357px] items-center gap-[16px] mt-4">
+          {categories.map((category) => (
+            <button
+              key={category}
+              onClick={() => setSelectedCategory(category)}
+              className={`flex justify-center items-center w-[82px] h-[32px] py-[5px] px-[20px] gap-[10px] rounded-full border bg-white shadow-[0px_4px_10px_rgba(0,0,0,0.10)] whitespace-nowrap ${
+                selectedCategory === category
+                  ? "border-[#222] text-[#222]"
+                  : "border-gray-300 text-[rgba(60,60,67,0.60)]"
+              }`}
+              style={{
+                fontFamily: "Abel",
+                fontSize: "12px",
+                fontWeight: "400",
+                lineHeight: "18px",
+              }}
+            >
+              {category}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <Footer />
     </div>
   );
 }
