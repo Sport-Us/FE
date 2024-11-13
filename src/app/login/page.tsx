@@ -15,11 +15,10 @@ export default function Login() {
           alt="Logo"
           width={130}
           height={130}
-          className="mt-10 mb-10"
         />
       </div>
 
-      <div className="w-full max-w-xs space-y-[28px] mb-[120px]">
+      <div className="w-full max-w-xs space-y-[28px] mb-[110px]">
         <input
           type="email"
           placeholder="이메일을 입력해 주세요."
@@ -40,9 +39,6 @@ export default function Login() {
       </p>
 
       <div className="flex gap-6 mb-[16px]">
-        <button className="w-[54px] h-[54px] bg-[#FEE500] rounded-full flex items-center justify-center">
-          <Image src="/kakao.png" alt="Kakao Icon" width={23} height={21} />
-        </button>
         <button className="w-[54px] h-[54px] bg-[#03C75A] rounded-full flex items-center justify-center">
           <Image src="/naver.png" alt="Naver Icon" width={20} height={20} />
         </button>

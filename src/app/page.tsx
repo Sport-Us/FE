@@ -20,10 +20,7 @@ export default function Home() {
           <Image src="/naver.png" alt="Naver Icon" width={16} height={16} />
           네이버로 시작하기
         </button>
-        <button className="flex items-center justify-center h-14 px-8 gap-4 w-full bg-[#FEE500] rounded-md text-black font-semibold text-[16px] leading-6">
-          <Image src="/kakao.png" alt="Kakao Icon" width={18} height={18} />
-          카카오로 시작하기
-        </button>
+
         <button
           onClick={handleEmailLoginClick}
           className="flex items-center justify-center h-14 px-8 gap-4 w-full bg-white border border-gray-300 rounded-md text-gray-500 font-semibold text-[16px] leading-6"
