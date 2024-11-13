@@ -35,7 +35,7 @@ export default function SignupForm() {
 
   return (
     <div className="flex flex-col items-center min-h-screen bg-white px-4 relative">
-      <Header title="회원가입" />
+      <Header title="회원가입" showBackButton={true} />
 
       <form className="w-full max-w-xs mt-[62px] space-y-6">
         <div>

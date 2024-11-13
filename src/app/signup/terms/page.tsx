@@ -46,7 +46,7 @@ export default function TermsAgreement() {
 
   return (
     <div className="flex flex-col items-center min-h-screen bg-white px-4 relative">
-      <Header title="회원가입" />
+      <Header title="회원가입" showBackButton={true} />
 
       <div className="w-full max-w-xs text-left mt-[62px] mb-[28px]">
         <p className="text-[18px] font-semibold text-[#1A1A1B] leading-[27px]">

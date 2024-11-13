@@ -28,7 +28,7 @@ export default function ProfileSetup() {
 
   return (
     <div className="flex flex-col items-center min-h-screen bg-white px-4 relative">
-      <Header title="회원가입" />
+      <Header title="회원가입" showBackButton={true} />
 
       <div className="w-full max-w-xs mt-[62px] text-left mb-6">
         <p className="text-[18px] font-semibold">반가워요!</p>

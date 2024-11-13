@@ -12,7 +12,7 @@ export default function SignupComplete() {
 
   return (
     <div className="flex flex-col items-center min-h-screen bg-white px-4 relative">
-      <Header title="회원가입" />
+      <Header title="회원가입" showBackButton={true} />
 
       <div className="flex flex-col items-center mt-[150px] mb-6">
         <div className="w-[100px] h-[100px] mb-8">
