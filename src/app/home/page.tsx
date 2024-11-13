@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Footer from "../components/Footer";
 
 export default function Home() {
   const [selectedTab, setSelectedTab] = useState<"체육 강좌" | "체육 시설">(
@@ -142,6 +143,8 @@ export default function Home() {
           </div>
         </div>
       </div>
+      <Footer />
+
     </div>
   );
 }
