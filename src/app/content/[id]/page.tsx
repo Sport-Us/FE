@@ -1,10 +1,12 @@
 "use client";
 
+import { useSearchParams } from "next/navigation";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
 
-export default function ContentDetail({ searchParams }: { searchParams: { title: string } }) {
-  const contentTitle = searchParams.title;
+export default function ContentDetail() {
+  const searchParams = useSearchParams();
+  const contentTitle = searchParams.get("title") || "Default Title";
 
   return (
     <div className="flex flex-col items-center w-full h-screen bg-white">
