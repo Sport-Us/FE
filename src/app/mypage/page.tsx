@@ -1,10 +1,16 @@
 "use client";
 
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 
 export default function MyPage() {
+  const router = useRouter();
+
+  const handleEditClick = () => {
+    router.push("/mypage/editprofile");
+  };
   return (
     <div className="flex flex-col items-center w-full min-h-screen bg-white">
       <Header title="마이페이지" showBackButton={false} />
@@ -19,10 +25,14 @@ export default function MyPage() {
         />
 
         <div className="flex items-center mt-4">
-          <span className="text-black font-semibold text-[18px] leading-[27px]" style={{ fontFamily: "Inter" }}>
+          <span
+            className="text-black font-semibold text-[18px] leading-[27px]"
+            style={{ fontFamily: "Inter" }}
+          >
             닉네임
           </span>
           <svg
+            onClick={handleEditClick}
             xmlns="http://www.w3.org/2000/svg"
             width="24"
             height="25"
@@ -41,7 +51,10 @@ export default function MyPage() {
         </div>
 
         <div className="flex items-center mt-2">
-          <span className="text-black font-semibold text-[14px] leading-[21px] text-center" style={{ fontFamily: "Inter" }}>
+          <span
+            className="text-black font-semibold text-[14px] leading-[21px] text-center"
+            style={{ fontFamily: "Inter" }}
+          >
             연결된 계정
           </span>
           <div className="ml-2 flex justify-center items-center w-[20px] h-[20px] rounded-full bg-[#03C75A]">
@@ -51,12 +64,21 @@ export default function MyPage() {
       </div>
 
       <div className="flex flex-col w-full max-w-md mt-12 space-y-2">
-        {["북마크", "내 리뷰", "개인정보처리방침", "서비스 이용약관", "로그아웃"].map((item) => (
+        {[
+          "북마크",
+          "내 리뷰",
+          "개인정보처리방침",
+          "서비스 이용약관",
+          "로그아웃",
+        ].map((item) => (
           <div
             key={item}
             className="flex items-center h-[48px] pl-[16px] gap-2"
           >
-            <span className="text-black font-semibold text-[14px] leading-[21px]" style={{ fontFamily: "Inter" }}>
+            <span
+              className="text-black font-semibold text-[14px] leading-[21px]"
+              style={{ fontFamily: "Inter" }}
+            >
               {item}
             </span>
           </div>
@@ -64,12 +86,27 @@ export default function MyPage() {
       </div>
 
       <div className="flex justify-between w-full max-w-md px-4 mt-[15px] text-gray-400">
-        <span className="text-[12px] leading-[18px]" style={{ fontFamily: "Inter" }}>앱 버전</span>
-        <span className="text-[12px] leading-[18px]" style={{ fontFamily: "Inter" }}>1.0.0</span>
+        <span
+          className="text-[12px] leading-[18px]"
+          style={{ fontFamily: "Inter" }}
+        >
+          앱 버전
+        </span>
+        <span
+          className="text-[12px] leading-[18px]"
+          style={{ fontFamily: "Inter" }}
+        >
+          1.0.0
+        </span>
       </div>
 
       <div className="flex justify-end items-center w-full max-w-md px-4 mt-[62px] text-gray-400">
-      <span className="text-[12px] leading-[18px] mb-[2px]" style={{ fontFamily: "Inter" }}>회원탈퇴</span>
+        <span
+          className="text-[12px] leading-[18px] mb-[2px]"
+          style={{ fontFamily: "Inter" }}
+        >
+          회원탈퇴
+        </span>
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="16"
