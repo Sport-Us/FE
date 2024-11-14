@@ -1,4 +1,4 @@
-"use client"; 
+"use client";
 
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -10,13 +10,20 @@ export default function Home() {
     router.push("/login");
   };
 
+  const handleNaverLoginClick = () => {
+    window.location.href = "http://43.202.94.217/oauth2/authorization/naver";
+  };
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-white">
       <div className="mb-10">
         <Image src="/logo.png" alt="Sportus Logo" width={279} height={279} />
       </div>
       <div className="flex flex-col gap-4 w-4/5 max-w-xs">
-        <button className="flex items-center justify-center h-14 px-8 gap-4 w-full bg-[#03C75A] rounded-md text-white font-semibold text-[16px] leading-6">
+        <button
+          onClick={handleNaverLoginClick}
+          className="flex items-center justify-center h-14 px-8 gap-4 w-full bg-[#03C75A] rounded-md text-white font-semibold text-[16px] leading-6"
+        >
           <Image src="/naver.png" alt="Naver Icon" width={16} height={16} />
           네이버로 시작하기
         </button>
