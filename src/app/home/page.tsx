@@ -10,13 +10,22 @@ export default function Home() {
   const [selectedCategory, setSelectedCategory] = useState("전체");
   const [map, setMap] = useState<any>(null);
   const [searchActive, setSearchActive] = useState(false);
-  const [searchInput, setSearchInput] = useState(""); 
+  const [searchInput, setSearchInput] = useState("");
   const [recentSearches, setRecentSearches] = useState([
     "서울",
     "상도동",
     "지하철역",
   ]); // 최근 검색어
   const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [filterModalVisible, setFilterModalVisible] = useState(false); 
+  const [distanceModalVisible, setDistanceModalVisible] = useState(false);
+
+  const [selectedFilter, setSelectedFilter] = useState<"별점순" | "거리순">(
+    "별점순"
+  );
+  const [selectedDistance, setSelectedDistance] = useState<string>("제한 없음");
+  const distanceOptions = ["500m", "1km", "2km", "5km", "10km", "제한 없음"];
+
 
   const allResults = [
     {
@@ -166,7 +175,7 @@ export default function Home() {
               </svg>
             </button>
 
-            <div className="flex items-center flex-1 p-[12px_16px] bg-[#F8F9FA] rounded-lg gap-4">
+            <div className="flex items-center flex-1 relative p-[12px_16px] bg-[#F8F9FA] rounded-lg gap-4">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="16"
@@ -202,111 +211,235 @@ export default function Home() {
               <input
                 type="text"
                 placeholder="검색어를 입력해 주세요."
-                className="flex-1 bg-transparent text-[#8E9398] text-[14px] font-normal"
+                className="flex-1 bg-transparent text-[#8E9398] text-[14px] font-normal outline-none"
                 value={searchInput}
                 onChange={handleSearchInput}
               />
+              {searchInput && (
+                <button
+                  onClick={() => {
+                    setSearchInput("");
+                    setSearchResults([]);
+                  }}
+                  className="absolute right-[16px] text-[#8E9398]"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="17"
+                    viewBox="0 0 16 17"
+                    fill="none"
+                  >
+                    <g clipPath="url(#clip0_431_503)">
+                      <path
+                        fillRule="evenodd"
+                        clipRule="evenodd"
+                        d="M3.75735 4.32645C3.95261 4.13119 4.26919 4.13119 4.46445 4.32645L12.2426 12.1046C12.4379 12.2999 12.4379 12.6165 12.2426 12.8117C12.0474 13.007 11.7308 13.007 11.5355 12.8117L3.75735 5.03356C3.56209 4.8383 3.56209 4.52172 3.75735 4.32645Z"
+                        fill="#505458"
+                      />
+                      <path
+                        fillRule="evenodd"
+                        clipRule="evenodd"
+                        d="M12.2427 4.32645C12.4379 4.52172 12.4379 4.8383 12.2427 5.03356L4.46448 12.8117C4.26922 13.007 3.95263 13.007 3.75737 12.8117C3.56211 12.6165 3.56211 12.2999 3.75737 12.1046L11.5355 4.32645C11.7308 4.13119 12.0474 4.13119 12.2427 4.32645Z"
+                        fill="#505458"
+                      />
+                    </g>
+                    <defs>
+                      <clipPath id="clip0_431_503">
+                        <rect
+                          width="12"
+                          height="12"
+                          fill="white"
+                          transform="translate(8 0.0837402) rotate(45)"
+                        />
+                      </clipPath>
+                    </defs>
+                  </svg>
+                </button>
+              )}
             </div>
           </div>
           {searchResults.length > 0 && (
-  <div className="w-[343px] flex flex-col items-start mt-[16px]">
-    <div className="flex justify-start gap-[16px]">
-      <button
-        onClick={() => {
-          setSelectedTab("체육 강좌");
-        }}
-        className={`relative text-[14px] leading-[21px] font-noto-sans ${
-          selectedTab === "체육 강좌"
-            ? "text-[var(--Main-Primary,#222)] font-semibold"
-            : "text-[var(--Gray-400,#8E9398)] font-medium"
-        }`}
-      >
-        강좌 보기
-        {selectedTab === "체육 강좌" && (
-          <div
-            className="absolute left-1/2 transform -translate-x-1/2 mt-[2px]"
-            style={{
-              width: "55px",
-              height: "1px",
-              background: "#222",
-            }}
-          ></div>
-        )}
-      </button>
-      <button
-        onClick={() => {
-          setSelectedTab("체육 시설");
-        }}
-        className={`relative text-[14px] leading-[21px] font-noto-sans ${
-          selectedTab === "체육 시설"
-            ? "text-[var(--Main-Primary,#222)] font-semibold"
-            : "text-[var(--Gray-400,#8E9398)] font-medium"
-        }`}
-      >
-        시설 보기
-        {selectedTab === "체육 시설" && (
-          <div
-            className="absolute left-1/2 transform -translate-x-1/2 mt-[2px]"
-            style={{
-              width: "55px",
-              height: "1px",
-              background: "#222",
-            }}
-          ></div>
-        )}
-      </button>
-    </div>
-  </div>
-)}
-
-          
-{searchResults.length > 0 && (
-          <div className="w-[343px] flex justify-end items-center mt-[18px]">
-            <div className="flex items-center gap-[9px]">
-              <div className="flex items-center cursor-pointer">
-                <span className="text-[12px] font-semibold text-[var(--Gray-500,#505458)] leading-[18px]">
-                  최대 거리
-                </span>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
+            <div className="w-[343px] flex flex-col items-start mt-[16px]">
+              <div className="flex justify-start gap-[16px]">
+                <button
+                  onClick={() => {
+                    setSelectedTab("체육 강좌");
+                  }}
+                  className={`relative text-[14px] leading-[21px] font-noto-sans ${
+                    selectedTab === "체육 강좌"
+                      ? "text-[var(--Main-Primary,#222)] font-semibold"
+                      : "text-[var(--Gray-400,#8E9398)] font-medium"
+                  }`}
                 >
-                  <path
-                    d="M6 9L12 15L18 9"
-                    stroke="#505458"
-                    strokeWidth="1.3"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </div>
-
-              <div className="flex items-center cursor-pointer">
-                <span className="text-[12px] font-semibold text-[var(--Gray-500,#505458)] leading-[18px]">
-                  별점순
-                </span>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
+                  강좌 보기
+                  {selectedTab === "체육 강좌" && (
+                    <div
+                      className="absolute left-1/2 transform -translate-x-1/2 mt-[2px]"
+                      style={{
+                        width: "55px",
+                        height: "1px",
+                        background: "#222",
+                      }}
+                    ></div>
+                  )}
+                </button>
+                <button
+                  onClick={() => {
+                    setSelectedTab("체육 시설");
+                  }}
+                  className={`relative text-[14px] leading-[21px] font-noto-sans ${
+                    selectedTab === "체육 시설"
+                      ? "text-[var(--Main-Primary,#222)] font-semibold"
+                      : "text-[var(--Gray-400,#8E9398)] font-medium"
+                  }`}
                 >
-                  <path
-                    d="M6 9L12 15L18 9"
-                    stroke="#505458"
-                    strokeWidth="1.3"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
+                  시설 보기
+                  {selectedTab === "체육 시설" && (
+                    <div
+                      className="absolute left-1/2 transform -translate-x-1/2 mt-[2px]"
+                      style={{
+                        width: "55px",
+                        height: "1px",
+                        background: "#222",
+                      }}
+                    ></div>
+                  )}
+                </button>
               </div>
             </div>
+          )}
+
+      {distanceModalVisible && (
+        <>
+          <div
+            className="fixed inset-0 bg-[rgba(0,0,0,0.20)] z-40"
+            onClick={() => setDistanceModalVisible(false)}
+          ></div>
+
+          <div className="fixed bottom-0 left-1/2 transform -translate-x-1/2 w-[375px] h-auto py-[20px] flex flex-col items-start gap-[10px] rounded-t-[20px] bg-[#FFF] z-50">
+            <div className="w-full text-[16px] font-semibold text-center leading-[24px]">
+              최대 거리
+            </div>
+            <div className="flex flex-col gap-[10px] w-full mt-[12px]  max-h-[120px] overflow-y-scroll">
+              {distanceOptions.map((distance, index) => (
+                <button
+                  key={index}
+                  onClick={() => {
+                    setSelectedDistance(distance);
+                    setDistanceModalVisible(false);
+                  }}
+                  className={`w-full py-[18px] px-[16px] flex items-center justify-start rounded-md ${
+                    selectedDistance === distance ? "bg-[#F1F1F1]" : "bg-white"
+                  } text-[14px] font-${
+                    selectedDistance === distance ? "semibold" : "normal"
+                  } text-[var(--Black,#1A1A1B)]`}
+                >
+                  {distance}
+                </button>
+              ))}
+            </div>
           </div>
-        )}
+        </>
+      )}
+
+{filterModalVisible && (
+  <>
+    <div
+      className="fixed inset-0 bg-[rgba(0,0,0,0.20)] z-40"
+      onClick={() => setFilterModalVisible(false)} 
+    ></div>
+
+    <div className="fixed bottom-0 left-1/2 transform -translate-x-1/2 w-[375px] h-[189px] py-[20px] flex flex-col items-start gap-[10px] rounded-t-[20px] bg-[#FFF] z-50">
+      <div className="w-full text-[16px] font-semibold text-center leading-[24px]">
+        필터
+      </div>
+      <div className="flex flex-col gap-[10px] w-full mt-[12px]">
+        <button
+          onClick={() => {
+            setSelectedFilter("별점순");
+            setFilterModalVisible(false); 
+          }}
+          className={`w-full py-[18px] px-[16px] flex items-center  justify-start rounded-md ${
+            selectedFilter === "별점순" ? "bg-[#F1F1F1]" : "bg-white"
+          } text-[14px] font-${
+            selectedFilter === "별점순" ? "semibold" : "normal"
+          } text-[var(--Black,#1A1A1B)]`}
+        >
+          별점순
+        </button>
+
+        <button
+          onClick={() => {
+            setSelectedFilter("거리순");
+            setFilterModalVisible(false); 
+          }}
+          className={`w-full py-[18px] px-[16px] flex items-center justify-start rounded-md ${
+            selectedFilter === "거리순" ? "bg-[#F1F1F1]" : "bg-white"
+          } text-[14px] font-${
+            selectedFilter === "거리순" ? "semibold" : "normal"
+          } text-[var(--Black,#1A1A1B)]`}
+        >
+          거리순
+        </button>
+      </div>
+    </div>
+  </>
+)}
+
+<div className="w-[343px] flex justify-end items-center mt-[18px]">
+<div className="flex items-center gap-[9px]">
+    
+    <div
+      className="flex items-center cursor-pointer"
+      onClick={() => setDistanceModalVisible(true)}
+    >
+      <span className="text-[12px] font-semibold text-[var(--Gray-500,#505458)] leading-[18px]">
+        {selectedDistance} 
+      </span>
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+      >
+        <path
+          d="M6 9L12 15L18 9"
+          stroke="#505458"
+          strokeWidth="1.3"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    </div>
+
+  <div
+    onClick={() => setFilterModalVisible(true)}
+    className="flex items-center cursor-pointer"
+  >
+    <span className="text-[12px] font-semibold text-[var(--Gray-500,#505458)] leading-[18px]">
+      {selectedFilter}
+    </span>
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+    >
+      <path
+        d="M6 9L12 15L18 9"
+        stroke="#505458"
+        strokeWidth="1.3"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  </div>
+</div>
+</div>
+
           <div className="w-[343px] mt-[7px]">
             {searchInput ? (
               searchResults.length > 0 ? (
