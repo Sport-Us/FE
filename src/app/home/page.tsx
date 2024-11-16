@@ -35,7 +35,6 @@ export default function Home() {
       reviews: 11,
       distance: "65m",
       address: "서울 동작구 상도로 272",
-      time: "12:00~18:00",
     },
     {
       category: "축구",
@@ -44,7 +43,6 @@ export default function Home() {
       reviews: 11,
       distance: "65m",
       address: "서울 동작구 상도로 272",
-      time: "12:00~18:00",
     },
     {
       category: "유도",
@@ -53,7 +51,6 @@ export default function Home() {
       reviews: 11,
       distance: "65m",
       address: "서울 동작구 상도로 272",
-      time: "12:00~18:00",
     },
     {
       category: "핸드볼",
@@ -71,7 +68,6 @@ export default function Home() {
       reviews: 11,
       distance: "65m",
       address: "서울 동작구 상도로 272",
-      time: "12:00~18:00",
     },
   ];
 
@@ -481,9 +477,8 @@ export default function Home() {
                         ({result.reviews})
                       </span>
                     </div>
-
                     <span className="text-[var(--Gray-500,#505458)] font-[Inter] text-[12px] font-semibold leading-[18px]">
-                      {result.distance} · {result.address} | {result.time}
+                      {result.distance} · {result.address}
                     </span>
                   </div>
                 ))
