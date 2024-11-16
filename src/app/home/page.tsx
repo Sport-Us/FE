@@ -1,9 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+
 import Footer from "../components/Footer";
+import router from "next/router";
 
 export default function Home() {
+  const router = useRouter();
+
   const [selectedTab, setSelectedTab] = useState<"체육 강좌" | "체육 시설">(
     "체육 강좌"
   );
@@ -142,6 +147,11 @@ export default function Home() {
       setSearchResults([]);
     }
   };
+
+  const handleResultClick = (id: string) => {
+    router.push(`/detail/${id}`);
+  };
+  
 
   return (
     <div className="relative w-full h-screen">
@@ -442,6 +452,7 @@ export default function Home() {
                 searchResults.map((result, index) => (
                   <div
                     key={index}
+                    onClick={() => handleResultClick(result.id)} 
                     className="flex flex-col px-[6px] py-[12px] gap-[4px] border-b border-[var(--Gray-200,#E8E8E8)]"
                   >
                     <div
