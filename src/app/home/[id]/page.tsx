@@ -1,29 +1,52 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import React from "react";
 
 export default function DetailPage({ params }: { params: { id: string } }) {
   const router = useRouter();
 
-  const mockData = {
-    id: "1",
-    category: "태권도",
-    name: "상도역",
-    address: "서울 동작구 상도로 272",
-    time: "12:00~18:00",
-    rating: 4.0,
-    reviews: [
-      {
-        id: 1,
-        username: "햄깅이",
-        rating: 4.0,
-        date: "2023.03.03",
-        comment: "설명도 자세하게 해주시고, 강사님이 되게 재미있으세요!",
-        image: "/sample-image.jpg", 
-      },
-    ],
-  };
+  const allResults = [
+    {
+      id: "1",
+      category: "태권도",
+      name: "상도역",
+      address: "서울 동작구 상도로 272",
+      time: "12:00~18:00",
+      rating: 4.0,
+      reviews: [
+        {
+          id: 1,
+          username: "햄깅이",
+          rating: 4.0,
+          date: "2023.03.03",
+          comment: "설명도 자세하게 해주시고, 강사님이 되게 재미있으세요!",
+        },
+      ],
+    },
+    {
+      id: "2",
+      category: "축구",
+      name: "상도역",
+      address: "서울 동작구 상도로 272",
+      time: "10:00~16:00",
+      rating: 4.2,
+      reviews: [
+        {
+          id: 2,
+          username: "길동이",
+          rating: 4.5,
+          date: "2023.05.01",
+          comment: "시설도 좋고 접근성이 뛰어나요!",
+        },
+      ],
+    },
+  ];
+
+  const mockData = allResults.find((item) => item.id === params.id);
+
+  if (!mockData) {
+    return <p>데이터를 찾을 수 없습니다.</p>;
+  }
 
   const review = mockData.reviews[0]; 
 
@@ -98,6 +121,12 @@ export default function DetailPage({ params }: { params: { id: string } }) {
 
       <section className="px-4 py-4">
         <h2 className="text-[18px] font-bold text-[#1A1A1B]">리뷰</h2>
+        <div className="mt-4">
+          <p className="text-[14px] text-[#1A1A1B] font-semibold">
+            {review.username}
+          </p>
+          <p className="text-[14px] text-[#505458]">{review.comment}</p>
+        </div>
       </section>
     </div>
   );

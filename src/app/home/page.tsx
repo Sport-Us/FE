@@ -34,6 +34,7 @@ export default function Home() {
 
   const allResults = [
     {
+      id: "1", // 고유한 ID 추가
       category: "태권도",
       name: "상도역",
       rating: 4.0,
@@ -42,6 +43,7 @@ export default function Home() {
       address: "서울 동작구 상도로 272",
     },
     {
+      id: "2", // 고유한 ID 추가
       category: "축구",
       name: "상도역",
       rating: 4.0,
@@ -50,6 +52,7 @@ export default function Home() {
       address: "서울 동작구 상도로 272",
     },
     {
+      id: "3", // 고유한 ID 추가
       category: "유도",
       name: "상도역",
       rating: 4.0,
@@ -58,6 +61,7 @@ export default function Home() {
       address: "서울 동작구 상도로 272",
     },
     {
+      id: "4",
       category: "핸드볼",
       name: "상도역",
       rating: 4.0,
@@ -67,6 +71,7 @@ export default function Home() {
       time: "12:00~18:00",
     },
     {
+      id: "5",
       category: "농구",
       name: "상도역",
       rating: 4.0,
@@ -75,6 +80,7 @@ export default function Home() {
       address: "서울 동작구 상도로 272",
     },
   ];
+  
 
   useEffect(() => {
     const initMap = (latitude: number, longitude: number) => {
@@ -149,7 +155,7 @@ export default function Home() {
   };
 
   const handleResultClick = (id: string) => {
-    router.push(`/detail/${id}`);
+    router.push(`/home/${id}`);
   };
   
 
@@ -452,7 +458,7 @@ export default function Home() {
                 searchResults.map((result, index) => (
                   <div
                     key={index}
-                    onClick={() => handleResultClick(result.id)} 
+                    onClick={() => handleResultClick(result.id)}
                     className="flex flex-col px-[6px] py-[12px] gap-[4px] border-b border-[var(--Gray-200,#E8E8E8)]"
                   >
                     <div
