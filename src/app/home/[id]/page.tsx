@@ -41,11 +41,11 @@ const allResults = [
   },
 ];
 
-export default async function DetailPage({
-  params,
-}: {
+interface PageProps {
   params: { id: string };
-}) {
+}
+
+export default async function DetailPage({ params }: PageProps) {
   const router = useRouter();
 
   const id = params?.id;
