@@ -42,12 +42,12 @@ const allResults = [
 ];
 
 interface PageProps {
-  params: { id: string };
+  params: { id: string } | Promise<{ id: string }>;
 }
 
 export default async function DetailPage({ params }: PageProps) {
   const router = useRouter();
-  const { id } = params;
+  const { id } = params as { id: string };
 
   const mockData = allResults.find((item) => item.id === id);
 
