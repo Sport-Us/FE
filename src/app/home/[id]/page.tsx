@@ -43,9 +43,9 @@ export default function DetailPage({ params }: { params: { id: string } }) {
       ],
     },
   ];
-  
-  const id = params.id;
-  const mockData = allResults.find((item) => item.id === params.id);
+
+  const id = params?.id;
+  const mockData = allResults.find((item) => item.id === id);
 
   if (!mockData) {
     return <p>데이터를 찾을 수 없습니다.</p>;

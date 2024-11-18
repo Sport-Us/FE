@@ -22,7 +22,7 @@ export default function Home() {
     "지하철역",
   ]); // 최근 검색어
   const [searchResults, setSearchResults] = useState<any[]>([]);
-  const [filterModalVisible, setFilterModalVisible] = useState(false); 
+  const [filterModalVisible, setFilterModalVisible] = useState(false);
   const [distanceModalVisible, setDistanceModalVisible] = useState(false);
 
   const [selectedFilter, setSelectedFilter] = useState<"별점순" | "거리순">(
@@ -31,10 +31,9 @@ export default function Home() {
   const [selectedDistance, setSelectedDistance] = useState<string>("제한 없음");
   const distanceOptions = ["500m", "1km", "2km", "5km", "10km", "제한 없음"];
 
-
   const allResults = [
     {
-      id: "1", // 고유한 ID 추가
+      id: "1",
       category: "태권도",
       name: "상도역",
       rating: 4.0,
@@ -43,7 +42,7 @@ export default function Home() {
       address: "서울 동작구 상도로 272",
     },
     {
-      id: "2", // 고유한 ID 추가
+      id: "2",
       category: "축구",
       name: "상도역",
       rating: 4.0,
@@ -52,7 +51,7 @@ export default function Home() {
       address: "서울 동작구 상도로 272",
     },
     {
-      id: "3", // 고유한 ID 추가
+      id: "3",
       category: "유도",
       name: "상도역",
       rating: 4.0,
@@ -80,7 +79,6 @@ export default function Home() {
       address: "서울 동작구 상도로 272",
     },
   ];
-  
 
   useEffect(() => {
     const initMap = (latitude: number, longitude: number) => {
@@ -157,7 +155,6 @@ export default function Home() {
   const handleResultClick = (id: string) => {
     router.push(`/home/${id}`);
   };
-  
 
   return (
     <div className="relative w-full h-screen">
@@ -322,142 +319,143 @@ export default function Home() {
             </div>
           )}
 
-      {distanceModalVisible && (
-        <>
-          <div
-            className="fixed inset-0 bg-[rgba(0,0,0,0.20)] z-40"
-            onClick={() => setDistanceModalVisible(false)}
-          ></div>
+          {distanceModalVisible && (
+            <>
+              <div
+                className="fixed inset-0 bg-[rgba(0,0,0,0.20)] z-40"
+                onClick={() => setDistanceModalVisible(false)}
+              ></div>
 
-          <div className="fixed bottom-0 left-1/2 transform -translate-x-1/2 w-[375px] h-auto py-[20px] flex flex-col items-start gap-[10px] rounded-t-[20px] bg-[#FFF] z-50">
-            <div className="w-full text-[16px] font-semibold text-center leading-[24px]">
-              최대 거리
-            </div>
-            <div className="flex flex-col gap-[10px] w-full mt-[12px]  max-h-[120px] overflow-y-scroll">
-              {distanceOptions.map((distance, index) => (
-                <button
-                  key={index}
-                  onClick={() => {
-                    setSelectedDistance(distance);
-                    setDistanceModalVisible(false);
-                  }}
-                  className={`w-full py-[18px] px-[16px] flex items-center justify-start rounded-md ${
-                    selectedDistance === distance ? "bg-[#F1F1F1]" : "bg-white"
-                  } text-[14px] font-${
-                    selectedDistance === distance ? "semibold" : "normal"
-                  } text-[var(--Black,#1A1A1B)]`}
+              <div className="fixed bottom-0 left-1/2 transform -translate-x-1/2 w-[375px] h-auto py-[20px] flex flex-col items-start gap-[10px] rounded-t-[20px] bg-[#FFF] z-50">
+                <div className="w-full text-[16px] font-semibold text-center leading-[24px]">
+                  최대 거리
+                </div>
+                <div className="flex flex-col gap-[10px] w-full mt-[12px]  max-h-[120px] overflow-y-scroll">
+                  {distanceOptions.map((distance, index) => (
+                    <button
+                      key={index}
+                      onClick={() => {
+                        setSelectedDistance(distance);
+                        setDistanceModalVisible(false);
+                      }}
+                      className={`w-full py-[18px] px-[16px] flex items-center justify-start rounded-md ${
+                        selectedDistance === distance
+                          ? "bg-[#F1F1F1]"
+                          : "bg-white"
+                      } text-[14px] font-${
+                        selectedDistance === distance ? "semibold" : "normal"
+                      } text-[var(--Black,#1A1A1B)]`}
+                    >
+                      {distance}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
+
+          {filterModalVisible && (
+            <>
+              <div
+                className="fixed inset-0 bg-[rgba(0,0,0,0.20)] z-40"
+                onClick={() => setFilterModalVisible(false)}
+              ></div>
+
+              <div className="fixed bottom-0 left-1/2 transform -translate-x-1/2 w-[375px] h-[189px] py-[20px] flex flex-col items-start gap-[10px] rounded-t-[20px] bg-[#FFF] z-50">
+                <div className="w-full text-[16px] font-semibold text-center leading-[24px]">
+                  필터
+                </div>
+                <div className="flex flex-col gap-[10px] w-full mt-[12px]">
+                  <button
+                    onClick={() => {
+                      setSelectedFilter("별점순");
+                      setFilterModalVisible(false);
+                    }}
+                    className={`w-full py-[18px] px-[16px] flex items-center  justify-start rounded-md ${
+                      selectedFilter === "별점순" ? "bg-[#F1F1F1]" : "bg-white"
+                    } text-[14px] font-${
+                      selectedFilter === "별점순" ? "semibold" : "normal"
+                    } text-[var(--Black,#1A1A1B)]`}
+                  >
+                    별점순
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setSelectedFilter("거리순");
+                      setFilterModalVisible(false);
+                    }}
+                    className={`w-full py-[18px] px-[16px] flex items-center justify-start rounded-md ${
+                      selectedFilter === "거리순" ? "bg-[#F1F1F1]" : "bg-white"
+                    } text-[14px] font-${
+                      selectedFilter === "거리순" ? "semibold" : "normal"
+                    } text-[var(--Black,#1A1A1B)]`}
+                  >
+                    거리순
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
+
+          <div className="w-[343px] flex justify-end items-center mt-[18px]">
+            <div className="flex items-center gap-[9px]">
+              <div
+                className="flex items-center cursor-pointer"
+                onClick={() => setDistanceModalVisible(true)}
+              >
+                <span className="text-[12px] font-semibold text-[var(--Gray-500,#505458)] leading-[18px]">
+                  {selectedDistance}
+                </span>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
                 >
-                  {distance}
-                </button>
-              ))}
+                  <path
+                    d="M6 9L12 15L18 9"
+                    stroke="#505458"
+                    strokeWidth="1.3"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </div>
+
+              <div
+                onClick={() => setFilterModalVisible(true)}
+                className="flex items-center cursor-pointer"
+              >
+                <span className="text-[12px] font-semibold text-[var(--Gray-500,#505458)] leading-[18px]">
+                  {selectedFilter}
+                </span>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                >
+                  <path
+                    d="M6 9L12 15L18 9"
+                    stroke="#505458"
+                    strokeWidth="1.3"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </div>
             </div>
           </div>
-        </>
-      )}
-
-{filterModalVisible && (
-  <>
-    <div
-      className="fixed inset-0 bg-[rgba(0,0,0,0.20)] z-40"
-      onClick={() => setFilterModalVisible(false)} 
-    ></div>
-
-    <div className="fixed bottom-0 left-1/2 transform -translate-x-1/2 w-[375px] h-[189px] py-[20px] flex flex-col items-start gap-[10px] rounded-t-[20px] bg-[#FFF] z-50">
-      <div className="w-full text-[16px] font-semibold text-center leading-[24px]">
-        필터
-      </div>
-      <div className="flex flex-col gap-[10px] w-full mt-[12px]">
-        <button
-          onClick={() => {
-            setSelectedFilter("별점순");
-            setFilterModalVisible(false); 
-          }}
-          className={`w-full py-[18px] px-[16px] flex items-center  justify-start rounded-md ${
-            selectedFilter === "별점순" ? "bg-[#F1F1F1]" : "bg-white"
-          } text-[14px] font-${
-            selectedFilter === "별점순" ? "semibold" : "normal"
-          } text-[var(--Black,#1A1A1B)]`}
-        >
-          별점순
-        </button>
-
-        <button
-          onClick={() => {
-            setSelectedFilter("거리순");
-            setFilterModalVisible(false); 
-          }}
-          className={`w-full py-[18px] px-[16px] flex items-center justify-start rounded-md ${
-            selectedFilter === "거리순" ? "bg-[#F1F1F1]" : "bg-white"
-          } text-[14px] font-${
-            selectedFilter === "거리순" ? "semibold" : "normal"
-          } text-[var(--Black,#1A1A1B)]`}
-        >
-          거리순
-        </button>
-      </div>
-    </div>
-  </>
-)}
-
-<div className="w-[343px] flex justify-end items-center mt-[18px]">
-<div className="flex items-center gap-[9px]">
-    
-    <div
-      className="flex items-center cursor-pointer"
-      onClick={() => setDistanceModalVisible(true)}
-    >
-      <span className="text-[12px] font-semibold text-[var(--Gray-500,#505458)] leading-[18px]">
-        {selectedDistance} 
-      </span>
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="none"
-      >
-        <path
-          d="M6 9L12 15L18 9"
-          stroke="#505458"
-          strokeWidth="1.3"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
-    </div>
-
-  <div
-    onClick={() => setFilterModalVisible(true)}
-    className="flex items-center cursor-pointer"
-  >
-    <span className="text-[12px] font-semibold text-[var(--Gray-500,#505458)] leading-[18px]">
-      {selectedFilter}
-    </span>
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-    >
-      <path
-        d="M6 9L12 15L18 9"
-        stroke="#505458"
-        strokeWidth="1.3"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  </div>
-</div>
-</div>
 
           <div className="w-[343px] mt-[7px]">
             {searchInput ? (
               searchResults.length > 0 ? (
-                searchResults.map((result, index) => (
+                searchResults.map((result) => (
                   <div
-                    key={index}
+                    key={result.id}
                     onClick={() => handleResultClick(result.id)}
                     className="flex flex-col px-[6px] py-[12px] gap-[4px] border-b border-[var(--Gray-200,#E8E8E8)]"
                   >
