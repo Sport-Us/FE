@@ -99,6 +99,8 @@ export default function ProfileSetup() {
       });
 
       if (response.data?.isSuccess) {
+        localStorage.setItem("nickname", nickname);
+        localStorage.setItem("gender", gender === "male" ? "MALE" : "FEMALE");
         router.push("/signup/complete");
       }
     } catch (error) {

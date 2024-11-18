@@ -1,10 +1,19 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Header from "@/app/components/Header";
 
 export default function SignupComplete() {
   const router = useRouter();
+  const [nickname, setNickname] = useState("");
+
+  useEffect(() => {
+    const storedNickname = localStorage.getItem("nickname");
+    if (storedNickname) {
+      setNickname(storedNickname);
+    }
+  }, []);
 
   const handleStartClick = () => {
     router.push("/"); 
@@ -38,7 +47,7 @@ export default function SignupComplete() {
         </div>
 
         <p className="text-center text-[20px] font-semibold text-[#000] leading-[30px]">
-          ooo 님,
+        {nickname} 님,
         </p>
         <p className="text-center text-[20px] font-semibold text-[#000] leading-[30px]">
           회원가입이 완료되었습니다!
