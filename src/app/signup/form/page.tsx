@@ -30,8 +30,34 @@ export default function SignupForm() {
   };
 
   const handleNextClick = () => {
-    router.push("/signup/profile");
+    if (
+      !errors.birthDate &&
+      !errors.email &&
+      !errors.password &&
+      !errors.confirmPassword &&
+      birthDate &&
+      email &&
+      password
+    ) {
+      localStorage.setItem("birthDate", birthDate);
+      localStorage.setItem("email", email);
+      localStorage.setItem("password", password);
+
+      router.push("/signup/profile");
+    } else {
+      alert("모든 입력란을 올바르게 작성해 주세요.");
+    }
   };
+
+  const isFormValid =
+  birthDate.replace(/-/g, "").length === 8 &&
+    !errors.birthDate &&
+    validateEmail(email) &&
+    !errors.email &&
+    validatePassword(password) &&
+    !errors.password &&
+    password === confirmPassword &&
+    !errors.confirmPassword;
 
   return (
     <div className="flex flex-col items-center min-h-screen bg-white px-4 relative">
@@ -47,12 +73,18 @@ export default function SignupForm() {
             placeholder="8자리 입력"
             value={birthDate}
             onChange={(e) => {
-              setBirthDate(e.target.value);
+              const rawValue = e.target.value.replace(/[^0-9]/g, "");
+              let formattedValue = rawValue;
+          
+              if (rawValue.length >= 8) {
+                formattedValue = `${rawValue.slice(0, 4)}-${rawValue.slice(4, 6)}-${rawValue.slice(6, 8)}`;
+              }
+              setBirthDate(formattedValue);
               setErrors((prev) => ({
                 ...prev,
                 birthDate:
-                  e.target.value.length === 8
-                    ? ""
+                rawValue.length === 8
+                ? ""
                     : "생년월일을 8자리로 입력해 주세요.",
               }));
             }}
@@ -139,7 +171,12 @@ export default function SignupForm() {
 
       <button
         onClick={handleNextClick}
-        className="flex justify-center items-center w-[343px] h-[50px] rounded-[10px] bg-[#0187BA] text-white text-[14px] font-semibold absolute left-1/2 transform -translate-x-1/2 bottom-[68px]"
+        disabled={!isFormValid}
+        className={`flex justify-center items-center w-[343px] h-[50px] rounded-[10px] text-[14px] font-semibold absolute left-1/2 transform -translate-x-1/2 bottom-[68px] ${
+          isFormValid
+            ? "bg-[#0187BA] text-white"
+            : "bg-[#F8F9FA] text-[#8E9398]"
+        }`}
       >
         다음
       </button>
