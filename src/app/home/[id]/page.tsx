@@ -43,7 +43,8 @@ export default function DetailPage({ params }: { params: { id: string } }) {
       ],
     },
   ];
-
+  
+  const id = params.id;
   const mockData = allResults.find((item) => item.id === params.id);
 
   if (!mockData) {
@@ -52,7 +53,7 @@ export default function DetailPage({ params }: { params: { id: string } }) {
 
   const renderSmallStars = (rating: number) => {
     const totalStars = 5;
-    const filledStars = Math.round(rating); 
+    const filledStars = Math.round(rating);
     const emptyStars = totalStars - filledStars;
 
     return (
@@ -209,79 +210,83 @@ export default function DetailPage({ params }: { params: { id: string } }) {
         }}
       ></div>
 
-<section className="px-4 py-4">
-  <h2 className="text-[18px] font-bold text-[#1A1A1B]">리뷰</h2>
+      <section className="px-4 py-4">
+        <h2 className="text-[18px] font-bold text-[#1A1A1B]">리뷰</h2>
 
-  {mockData.reviews.length === 0 ? (
-    <div className="flex justify-center items-center h-[150px]">
-      <p
-        style={{
-          color: "var(--Black, #1A1A1B)",
-          fontFamily: "Inter",
-          fontSize: "16px",
-          fontStyle: "normal",
-          fontWeight: 600,
-          lineHeight: "24px",
-        }}
-      >
-        아직 작성한 리뷰가 없어요
-      </p>
-    </div>
-  ) : (
-    <>
-      <div className="flex justify-center items-center mt-[17px] gap-[12px]">
-        <p
-          style={{
-            color: "var(--Black, #1A1A1B)",
-            fontFamily: "Inter",
-            fontSize: "18px",
-            fontStyle: "normal",
-            fontWeight: 600,
-            lineHeight: "27px",
-          }}
-        >
-          {mockData.rating.toFixed(1)}
-        </p>
-        {renderLargeStars(mockData.rating)}
-      </div>
-
-      <div className="mt-[28px] space-y-6">
-        {mockData.reviews.map((review) => (
-          <div key={review.id}>
-            <div className="flex items-start justify-between">
-              <div className="flex items-center gap-[7px]">
-                <img
-                  src="/profile.png"
-                  alt="프로필"
-                  width={25}
-                  height={25}
-                  className="rounded-full"
-                />
-                <div>
-                  <p className="text-[12px] text-[#505458] font-semibold">
-                    {review.username}
-                  </p>
-                  <div className="mt-[2px]">{renderSmallStars(review.rating)}</div>
-                </div>
-              </div>
-              <p className="ml-auto text-[12px] text-[#565656] self-center">
-                {review.date}
-              </p>
-            </div>
-            <p className="mt-[7px] text-[14px] text-[#000]">{review.comment}</p>
-            {review.image && (
-              <img
-                src={review.image}
-                alt="리뷰 이미지"
-                className="mt-[7px] w-full rounded-md"
-              />
-            )}
+        {mockData.reviews.length === 0 ? (
+          <div className="flex justify-center items-center h-[150px]">
+            <p
+              style={{
+                color: "var(--Black, #1A1A1B)",
+                fontFamily: "Inter",
+                fontSize: "16px",
+                fontStyle: "normal",
+                fontWeight: 600,
+                lineHeight: "24px",
+              }}
+            >
+              아직 작성한 리뷰가 없어요
+            </p>
           </div>
-        ))}
-      </div>
-    </>
-  )}
-</section>
+        ) : (
+          <>
+            <div className="flex justify-center items-center mt-[17px] gap-[12px]">
+              <p
+                style={{
+                  color: "var(--Black, #1A1A1B)",
+                  fontFamily: "Inter",
+                  fontSize: "18px",
+                  fontStyle: "normal",
+                  fontWeight: 600,
+                  lineHeight: "27px",
+                }}
+              >
+                {mockData.rating.toFixed(1)}
+              </p>
+              {renderLargeStars(mockData.rating)}
+            </div>
+
+            <div className="mt-[28px] space-y-6">
+              {mockData.reviews.map((review) => (
+                <div key={review.id}>
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-[7px]">
+                      <img
+                        src="/profile.png"
+                        alt="프로필"
+                        width={25}
+                        height={25}
+                        className="rounded-full"
+                      />
+                      <div>
+                        <p className="text-[12px] text-[#505458] font-semibold">
+                          {review.username}
+                        </p>
+                        <div className="mt-[2px]">
+                          {renderSmallStars(review.rating)}
+                        </div>
+                      </div>
+                    </div>
+                    <p className="ml-auto text-[12px] text-[#565656] self-center">
+                      {review.date}
+                    </p>
+                  </div>
+                  <p className="mt-[7px] text-[14px] text-[#000]">
+                    {review.comment}
+                  </p>
+                  {review.image && (
+                    <img
+                      src={review.image}
+                      alt="리뷰 이미지"
+                      className="mt-[7px] w-full rounded-md"
+                    />
+                  )}
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+      </section>
 
       <div className="fixed bottom-0 left-0 w-full bg-white shadow-lg py-[25px] px-[16px] flex justify-center items-center">
         <div className="flex items-center gap-[12px]">
@@ -302,7 +307,10 @@ export default function DetailPage({ params }: { params: { id: string } }) {
               />
             </svg>
           </button>
-          <button onClick={() => router.push("/review")} className="flex items-center justify-center w-[281px] h-[43px] rounded-[8px] bg-[#0187BA] text-white font-bold text-[12px]">
+          <button
+            onClick={() => router.push("/review")}
+            className="flex items-center justify-center w-[281px] h-[43px] rounded-[8px] bg-[#0187BA] text-white font-bold text-[12px]"
+          >
             리뷰 작성하기
           </button>
         </div>
