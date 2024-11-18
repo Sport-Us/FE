@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { axios } from "@/lib/axios";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import Header from "@/app/components/Header";
@@ -10,7 +11,8 @@ export default function ProfileSetup() {
 
   const [nickname, setNickname] = useState("");
   const [isNicknameValid, setIsNicknameValid] = useState(false);
-  const [gender, setGender] = useState<"male" | "female">("male"); // 기본값을 "male"로 설정
+  const [nicknameCheckMessage, setNicknameCheckMessage] = useState<string | null>(null);
+  const [gender, setGender] = useState<"male" | "female">("male");
 
   const handleNicknameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -18,11 +20,33 @@ export default function ProfileSetup() {
     setIsNicknameValid(value.trim().length > 0);
   };
 
-  const handleNicknameCheck = () => {
-    alert("닉네임 중복 확인 중...");
+  const handleNicknameCheck = async () => {
+    if (!nickname.trim()) return;
+
+    try {
+      const response = await axios.get("/auth/nickname/validation", {
+        params: { nickname },
+      });
+
+      if (response.data?.results === false) {
+        setIsNicknameValid(true);
+        setNicknameCheckMessage("사용 가능한 닉네임입니다!");
+      } else {
+        setIsNicknameValid(false);
+        setNicknameCheckMessage("이미 사용 중인 닉네임입니다.");
+      }
+    } catch (error) {
+      console.error(error);
+      setIsNicknameValid(false);
+      setNicknameCheckMessage("닉네임 확인 중 오류가 발생했습니다.");
+    }
   };
 
   const handleNextClick = () => {
+    if (!isNicknameValid) {
+      alert("닉네임 중복 확인을 완료해 주세요.");
+      return;
+    }
     router.push("/signup/complete");
   };
 
@@ -113,8 +137,11 @@ export default function ProfileSetup() {
             placeholder="닉네임을 입력해 주세요."
             value={nickname}
             onChange={handleNicknameChange}
-            className="flex h-[52px] px-[16px] items-center gap-[4px] w-full rounded-[8px] bg-[#F8F9FA] text-[#8E9398] text-[14px]"
-          />
+            className={`flex h-[52px] px-[16px] items-center gap-[4px] w-full rounded-[8px] text-[14px] ${
+              nicknameCheckMessage === "이미 사용 중인 닉네임입니다."
+                ? "border-[1px] border-[#FF5252] bg-[#F8F9FA] text-[#8E9398]"
+                : "border-[1px] border-[#E0E0E0] bg-[#F8F9FA] text-[#8E9398]"
+            }`}          />
           <button
             onClick={handleNicknameCheck}
             disabled={!isNicknameValid}
@@ -127,6 +154,17 @@ export default function ProfileSetup() {
             중복 확인
           </button>
         </div>
+        {nicknameCheckMessage && (
+          <p
+            className={`mt-2 text-[12px] ${
+              nicknameCheckMessage === "이미 사용 중인 닉네임입니다."
+                ? "text-[#FF5252]"
+                : "text-[#8E9398]"
+            }`}
+          >
+            {nicknameCheckMessage}
+          </p>
+        )}
       </div>
 
       <button
