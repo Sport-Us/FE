@@ -4,12 +4,33 @@ import Image from "next/image";
 import Link from "next/link";
 import Header from "../components/Header";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { axios } from "../../lib/axios";
 
 export default function Login() {
   const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
 
-  const handleLoginClick = () => {
-    router.push("/home");
+  const isLoginEnabled = email.trim() !== "" && password.trim() !== "";
+
+  const handleLoginClick = async () => {
+    try {
+      const response = await axios.post("/auth/sign-in", {
+        email,
+        password,
+      });
+
+      const { accessToken, refreshToken } = response.data;
+
+      window.localStorage.setItem("accessToken", accessToken);
+
+      router.push("/home");
+    } catch (error) {
+      console.error("로그인 실패", error);
+      setError("이메일과 비밀번호를 확인해주세요.");
+    }
   };
 
   return (
@@ -24,16 +45,36 @@ export default function Login() {
         <input
           type="email"
           placeholder="이메일을 입력해 주세요."
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
           className="flex h-13 px-4 py-3 items-center w-full rounded-lg bg-[#F8F9FA] text-[#8E9398] placeholder-[#8E9398] text-[14px] leading-[21px] font-normal"
         />
         <input
           type="password"
           placeholder="비밀번호를 입력해 주세요."
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
           className="flex h-13 px-4 py-3 items-center w-full rounded-lg bg-[#F8F9FA] text-[#8E9398] placeholder-[#8E9398] text-[14px] leading-[21px] font-normal"
         />
+        {error && <p className="text-[#FF5252] text-[12px]">{error}</p>}
+
         <button
           onClick={handleLoginClick}
-          className="flex w-full h-[50px] mt-[10px] justify-center items-center rounded-lg bg-[#0187BA] text-white text-center text-[14px] leading-[21px] font-semibold"
+          disabled={!isLoginEnabled}
+          className={`flex justify-center items-center rounded-lg w-[343px] h-[50px] text-center text-[14px] font-semibold ${
+            isLoginEnabled
+              ? "bg-[#0187BA] text-white"
+              : "bg-[#F8F9FA] text-[#8E9398]"
+          }`}
+          style={{
+            gap: "10px",
+            flexShrink: 0,
+            borderRadius: "10px",
+            fontFamily: "Inter",
+            fontStyle: "normal",
+            fontWeight: 600,
+            lineHeight: "21px",
+          }}
         >
           로그인
         </button>
