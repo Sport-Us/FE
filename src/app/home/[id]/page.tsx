@@ -42,14 +42,13 @@ const allResults = [
 ];
 
 interface PageProps {
-  params: { id: string } | Promise<{ id: string }>;
+  params: { id: string };
 }
 
 export default async function DetailPage({ params }: PageProps) {
   const router = useRouter();
-  const resolvedParams = params instanceof Promise ? await params : params;
+  const { id } = params;
 
-  const id = resolvedParams?.id;
   const mockData = allResults.find((item) => item.id === id);
 
   if (!mockData) {
