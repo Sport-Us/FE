@@ -2,47 +2,51 @@
 
 import { useRouter } from "next/navigation";
 
-export default function DetailPage({ params }: { params: { id: string } }) {
-  const router = useRouter();
+const allResults = [
+  {
+    id: "1",
+    category: "태권도",
+    name: "상도역",
+    address: "서울 동작구 상도로 272",
+    time: "12:00~18:00",
+    rating: 4.0,
+    reviews: [
+      {
+        id: 1,
+        username: "햄깅이",
+        rating: 4.0,
+        date: "2023.03.03",
+        comment: "설명도 자세하게 해주시고, 강사님이 되게 재미있으세요!",
+        image: "/sample-image.jpg",
+      },
+    ],
+  },
+  {
+    id: "2",
+    category: "축구",
+    name: "상도역",
+    address: "서울 동작구 상도로 272",
+    time: "10:00~16:00",
+    rating: 4.2,
+    reviews: [
+      {
+        id: 2,
+        username: "길동이",
+        rating: 4.5,
+        date: "2023.05.01",
+        comment: "시설도 좋고 접근성이 뛰어나요!",
+        image: null,
+      },
+    ],
+  },
+];
 
-  const allResults = [
-    {
-      id: "1",
-      category: "태권도",
-      name: "상도역",
-      address: "서울 동작구 상도로 272",
-      time: "12:00~18:00",
-      rating: 4.0,
-      reviews: [
-        {
-          id: 1,
-          username: "햄깅이",
-          rating: 4.0,
-          date: "2023.03.03",
-          comment: "설명도 자세하게 해주시고, 강사님이 되게 재미있으세요!",
-          image: "/sample-image.jpg",
-        },
-      ],
-    },
-    {
-      id: "2",
-      category: "축구",
-      name: "상도역",
-      address: "서울 동작구 상도로 272",
-      time: "10:00~16:00",
-      rating: 4.2,
-      reviews: [
-        {
-          id: 2,
-          username: "길동이",
-          rating: 4.5,
-          date: "2023.05.01",
-          comment: "시설도 좋고 접근성이 뛰어나요!",
-          image: null,
-        },
-      ],
-    },
-  ];
+export default async function DetailPage({
+  params,
+}: {
+  params: { id: string };
+}) {
+  const router = useRouter();
 
   const id = params?.id;
   const mockData = allResults.find((item) => item.id === id);
