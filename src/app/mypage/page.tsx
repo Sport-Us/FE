@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
+import {axios} from "@/lib/axios"
 
 export default function MyPage() {
   const router = useRouter();
@@ -11,6 +12,22 @@ export default function MyPage() {
   const handleEditClick = () => {
     router.push("/mypage/editprofile");
   };
+
+  const handleWithdrawClick = async () => {
+    try {
+      const response = await axios.delete("/auth/withdraw");
+      if (response.data.isSuccess) {
+        alert("회원탈퇴가 완료되었습니다.");
+        router.push("/home");
+      } else {
+        alert("회원탈퇴에 실패했습니다. 다시 시도해주세요.");
+      }
+    } catch (error) {
+      console.error("회원탈퇴 실패:", error);
+      alert("회원탈퇴 중 오류가 발생했습니다.");
+    }
+  };
+
   return (
     <div className="flex flex-col items-center w-full min-h-screen bg-white">
       <Header title="마이페이지" showBackButton={false} />
@@ -100,7 +117,7 @@ export default function MyPage() {
         </span>
       </div>
 
-      <div className="flex justify-end items-center w-full max-w-md px-4 mt-[62px] text-gray-400">
+      <div  onClick={handleWithdrawClick} className="flex justify-end items-center w-full max-w-md px-4 mt-[62px] text-gray-400">
         <span
           className="text-[12px] leading-[18px] mb-[2px]"
           style={{ fontFamily: "Inter" }}
