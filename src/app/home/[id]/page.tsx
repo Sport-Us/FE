@@ -42,7 +42,7 @@ const allResults = [
 ];
 
 interface PageProps {
-  params: { id: string } | Promise<{ id: string }>;
+  params: { id: string };
 }
 
 export default async function DetailPage({ params }: PageProps) {
