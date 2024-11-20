@@ -17,21 +17,31 @@ export default function Login() {
 
   const handleLoginClick = async () => {
     try {
-      const response = await axios.post("/auth/sign-in", {
-        email,
-        password,
-      });
-
-      const { accessToken, refreshToken } = response.data;
-
-      window.localStorage.setItem("accessToken", accessToken);
-
-      router.push("/home");
+      const response = await axios.post(
+        "/auth/sign-in",
+        { email, password },
+        { withCredentials: true }
+      );
+  
+      console.log("전체 응답 헤더:", response.headers);
+  
+      const authHeader = response.headers["authorization"];
+  
+      if (authHeader && typeof authHeader === "string" && authHeader.startsWith("Bearer ")) {
+        const token = authHeader.split(" ")[1]; 
+        window.localStorage.setItem("accessToken", token); 
+        console.log("Access Token 저장 성공:", token);
+  
+        router.push("/home");
+      } else {
+        throw new Error("Authorization 헤더가 없습니다.");
+      }
     } catch (error) {
-      console.error("로그인 실패", error);
+      console.error("로그인 실패:", error);
       setError("이메일과 비밀번호를 확인해주세요.");
     }
   };
+  
 
   return (
     <div className="flex flex-col items-center min-h-screen bg-white px-4">

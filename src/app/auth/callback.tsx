@@ -11,33 +11,21 @@ export default function Callback() {
     const code = urlParams.get("code");
     const state = urlParams.get("state");
 
-    if (code) {
+    if (code && state) {
       fetch(`/login/oauth2/code/naver?code=${code}&state=${state}`, {
         method: "GET",
-        redirect: "manual",
+        redirect: "follow",
       })
-        .then((response) => {
-          console.log("응답 상태 코드:", response.status);
-          console.log("응답 헤더:", [...response.headers.entries()]);
-
-          if (response.status === 302) {
-            const authHeader = response.headers.get("Authorization");
-            if (authHeader && authHeader.startsWith("Bearer ")) {
-              const token = authHeader.split(" ")[1];
-              localStorage.setItem("authToken", token);
-              console.log("토큰 저장 성공:", token);
-
-              const redirectUrl = response.headers.get("Location");
-              if (redirectUrl) {
-                window.location.href = redirectUrl;
-              } else {
-                throw new Error("리다이렉션 URL이 없습니다.");
-              }
-            } else {
-              throw new Error("Authorization 헤더가 없습니다.");
-            }
+        .then(async (response) => {
+          if (!response.ok) {
+            throw new Error(`요청 실패: ${response.status}`);
+          }
+          
+          const redirectUrl = response.url;
+          if (redirectUrl) {
+            window.location.href = redirectUrl; 
           } else {
-            throw new Error(`예상치 못한 상태 코드: ${response.status}`);
+            throw new Error("리다이렉션 URL이 없습니다.");
           }
         })
         .catch((error) => {
@@ -45,7 +33,7 @@ export default function Callback() {
           router.push("/login");
         });
     } else {
-      console.error("Authorization Code가 없습니다.");
+      console.error("Authorization Code와 State가 없습니다.");
       router.push("/login");
     }
   }, [router]);
