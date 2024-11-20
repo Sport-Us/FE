@@ -12,26 +12,29 @@ export default function Callback() {
     const state = urlParams.get("state");
 
     if (code) {
-      // 네이버 인증 후 요청 보내기
       fetch(`/login/oauth2/code/naver?code=${code}&state=${state}`, {
         method: "GET",
-        redirect: "manual", // 리다이렉트 방지
+        redirect: "manual",
       })
         .then((response) => {
-          console.log("응답 상태 코드:", response.status); // 상태 코드 확인
-          console.log("응답 헤더:", Array.from(response.headers.entries())); // 모든 헤더 확인
-          
+          console.log("응답 상태 코드:", response.status);
+          console.log("응답 헤더:", [...response.headers.entries()]);
+
           if (response.status === 302) {
-            // 리다이렉트 응답 처리
-            const authHeader = response.headers.get("authorization");
+            const authHeader = response.headers.get("Authorization");
             if (authHeader && authHeader.startsWith("Bearer ")) {
-              const token = authHeader.split(" ")[1]; // 'Bearer ' 이후의 토큰 추출
-              localStorage.setItem("authToken", token); // 로컬스토리지에 저장
+              const token = authHeader.split(" ")[1];
+              localStorage.setItem("authToken", token);
               console.log("토큰 저장 성공:", token);
-              router.push("/onboarding"); // 온보딩 페이지로 이동
+
+              const redirectUrl = response.headers.get("Location");
+              if (redirectUrl) {
+                window.location.href = redirectUrl;
+              } else {
+                throw new Error("리다이렉션 URL이 없습니다.");
+              }
             } else {
-              console.error("Authorization 헤더가 없습니다.");
-              router.push("/login");
+              throw new Error("Authorization 헤더가 없습니다.");
             }
           } else {
             throw new Error(`예상치 못한 상태 코드: ${response.status}`);
