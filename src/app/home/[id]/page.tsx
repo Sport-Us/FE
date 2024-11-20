@@ -45,9 +45,9 @@ interface PageProps {
   params: { id: string };
 }
 
-export default async function DetailPage({ params }: PageProps) {
+export default function DetailPage({ params }: PageProps) {
   const router = useRouter();
-  const { id } = params as { id: string };
+  const { id } = params;
 
   const mockData = allResults.find((item) => item.id === id);
 
