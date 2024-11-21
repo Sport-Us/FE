@@ -19,16 +19,16 @@ export default function OnboardingPage() {
 
       const urlParams = new URLSearchParams(window.location.search);
       const accessToken = urlParams.get("accessToken");
-      //const refreshToken = urlParams.get("refreshToken");
+      const refreshToken = urlParams.get("refreshToken");
 
       console.log("Access Token:", accessToken);
       // console.log("Refresh Token:", refreshToken);
 
-      // if (accessToken && refreshToken) {
-      if (accessToken) {
+      if (accessToken && refreshToken) {
+      //if (accessToken) {
         try {
           localStorage.setItem("accessToken", accessToken);
-          //localStorage.setItem("refreshToken", refreshToken);
+          localStorage.setItem("refreshToken", refreshToken);
 
           router.push("/home");
         } catch (error) {
