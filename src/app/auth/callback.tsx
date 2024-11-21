@@ -3,40 +3,49 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 
-export default function Callback() {
+export default function AuthCallback() {
   const router = useRouter();
 
   useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const code = urlParams.get("code");
-    const state = urlParams.get("state");
+    const handleTokenExtraction = () => {
+      if (typeof window === "undefined") {
+        console.error("브라우저 환경이 아닙니다.");
+        return;
+      }
 
-    if (code && state) {
-      fetch(`/login/oauth2/code/naver?code=${code}&state=${state}`, {
-        method: "GET",
-        redirect: "follow",
-      })
-        .then(async (response) => {
-          if (!response.ok) {
-            throw new Error(`요청 실패: ${response.status}`);
-          }
-          
-          const redirectUrl = response.url;
-          if (redirectUrl) {
-            window.location.href = redirectUrl; 
-          } else {
-            throw new Error("리다이렉션 URL이 없습니다.");
-          }
-        })
-        .catch((error) => {
-          console.error("오류 발생:", error);
+      const urlParams = new URLSearchParams(window.location.search);
+      console.log("Query String:", window.location.search);
+
+      const accessToken = urlParams.get("accessToken");
+      const refreshToken = urlParams.get("refreshToken");
+
+      console.log("Extracted Access Token:", accessToken);
+      console.log("Extracted Refresh Token:", refreshToken);
+
+      if (accessToken && refreshToken) {
+        try {
+          localStorage.setItem("accessToken", accessToken);
+          localStorage.setItem("refreshToken", refreshToken);
+
+          setTimeout(() => {
+            router.push("/home");
+          }, 100);
+        } catch (error) {
+          console.error("로컬 스토리지에 저장 중 오류 발생:", error);
           router.push("/login");
-        });
-    } else {
-      console.error("Authorization Code와 State가 없습니다.");
-      router.push("/login");
-    }
+        }
+      } else {
+        console.error("accessToken 또는 refreshToken이 없습니다.");
+        router.push("/login");
+      }
+    };
+
+    handleTokenExtraction();
   }, [router]);
 
-  return <div>로그인 처리 중...</div>;
+  return (
+    <div className="flex justify-center items-center h-screen bg-white">
+      <p>토큰 처리 중...</p>
+    </div>
+  );
 }
