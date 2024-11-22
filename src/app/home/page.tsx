@@ -4,10 +4,34 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import Footer from "../components/Footer";
-import router from "next/router";
 
 export default function Home() {
   const router = useRouter();
+
+  useEffect(() => {
+    const handleTokenExtraction = () => {
+      if (typeof window === "undefined") {
+        console.error("브라우저 환경이 아닙니다.");
+        return;
+      }
+
+      const urlParams = new URLSearchParams(window.location.search);
+      const accessToken = urlParams.get("accessToken");
+
+      if (accessToken) {
+        try {
+          localStorage.setItem("accessToken", accessToken);
+        } catch (error) {
+          console.error("로컬 스토리지 저장 중 오류:", error);
+        }
+      } else {
+        console.error("accessToken이 없습니다.");
+        router.push("/login");
+      }
+    };
+
+    handleTokenExtraction();
+  }, [router]);
 
   const [selectedTab, setSelectedTab] = useState<"체육 강좌" | "체육 시설">(
     "체육 강좌"

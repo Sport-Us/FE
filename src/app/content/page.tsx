@@ -40,10 +40,24 @@ export default function Content() {
             imageUrl: item.cardImageUrl,
           }));
           setContentItems(items);
-        } 
-      } catch (err: any) {
-        console.error("Error fetching content items:", err);
+        }
+      } catch (error: any) {
+        if (error.response?.status === 401) {
+          console.log("Access token expired. Trying to refresh...");
+          try {
+            const refreshResponse = await axios.post("/auth/refresh", {
+              refreshToken: localStorage.getItem("refreshToken"),
+            });
+            const newAccessToken = refreshResponse.data.accessToken;
+            localStorage.setItem("accessToken", newAccessToken);
 
+            await fetchContentItems();
+          } catch (refreshError) {
+            console.error("Failed to refresh token:", refreshError);
+          }
+        } else {
+          console.error("Error fetching content items:", error);
+        }
       } finally {
         setLoading(false);
       }
@@ -59,8 +73,6 @@ export default function Content() {
       </div>
     );
   }
-
-
 
   return (
     <div className="flex flex-col items-center w-full h-screen bg-white">

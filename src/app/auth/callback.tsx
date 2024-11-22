@@ -17,15 +17,12 @@ export default function AuthCallback() {
       console.log("Query String:", window.location.search);
 
       const accessToken = urlParams.get("accessToken");
-      const refreshToken = urlParams.get("refreshToken");
 
       console.log("Extracted Access Token:", accessToken);
-      console.log("Extracted Refresh Token:", refreshToken);
 
-      if (accessToken && refreshToken) {
+      if (accessToken ) {
         try {
           localStorage.setItem("accessToken", accessToken);
-          localStorage.setItem("refreshToken", refreshToken);
 
           setTimeout(() => {
             router.push("/home");
