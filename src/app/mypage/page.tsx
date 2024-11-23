@@ -1,17 +1,38 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-import {axios} from "@/lib/axios"
+import { axios } from "@/lib/axios";
+
+interface UserProfile {
+  profileImageUrl?: string;
+  nickname: string;
+  provider: string;
+}
 
 export default function MyPage() {
   const router = useRouter();
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
 
-  const handleEditClick = () => {
-    router.push("/mypage/editprofile");
-  };
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      try {
+        const response = await axios.get("/users");
+        if (response.data.isSuccess) {
+          setUserProfile(response.data.results);
+        } else {
+          alert("사용자 정보를 가져오는 데 실패했습니다.");
+        }
+      } catch (error) {
+        console.error("사용자 정보 가져오기 실패:", error);
+      }
+    };
+
+    fetchUserProfile();
+  }, []);
 
   const handleWithdrawClick = async () => {
     try {
@@ -28,13 +49,21 @@ export default function MyPage() {
     }
   };
 
+  const profileImageUrl =
+    userProfile?.profileImageUrl && userProfile.profileImageUrl !== ""
+      ? userProfile.profileImageUrl
+      : "/profile.png";
+
+  const providerImageUrl =
+    userProfile?.provider === "NAVER" ? "/naver.png" : "/profile.png";
+
   return (
     <div className="flex flex-col items-center w-full min-h-screen bg-white">
       <Header title="마이페이지" showBackButton={false} />
 
       <div className="flex flex-col items-center mt-7">
         <Image
-          src="/profile.png"
+          src={profileImageUrl}
           alt="Profile"
           width={100}
           height={100}
@@ -46,10 +75,10 @@ export default function MyPage() {
             className="text-black font-semibold text-[18px] leading-[27px]"
             style={{ fontFamily: "Inter" }}
           >
-            닉네임
+            {userProfile?.nickname || "닉네임"}
           </span>
           <svg
-            onClick={handleEditClick}
+            onClick={() => router.push("/mypage/editprofile")}
             xmlns="http://www.w3.org/2000/svg"
             width="24"
             height="25"
@@ -75,31 +104,27 @@ export default function MyPage() {
             연결된 계정
           </span>
           <div className="ml-2 flex justify-center items-center w-[20px] h-[20px] rounded-full bg-[#03C75A]">
-            <Image src="/naver.png" alt="Naver" width={7} height={7} />
+            <Image src={providerImageUrl} alt="Provider" width={7} height={7} />
           </div>
         </div>
       </div>
 
       <div className="flex flex-col w-full max-w-md mt-12 space-y-2">
-        {[
-          "북마크",
-          "내 리뷰",
-          "개인정보처리방침",
-          "서비스 이용약관",
-          "로그아웃",
-        ].map((item) => (
-          <div
-            key={item}
-            className="flex items-center h-[48px] pl-[16px] gap-2"
-          >
-            <span
-              className="text-black font-semibold text-[14px] leading-[21px]"
-              style={{ fontFamily: "Inter" }}
+        {["북마크", "내 리뷰", "개인정보처리방침", "서비스 이용약관", "로그아웃"].map(
+          (item) => (
+            <div
+              key={item}
+              className="flex items-center h-[48px] pl-[16px] gap-2"
             >
-              {item}
-            </span>
-          </div>
-        ))}
+              <span
+                className="text-black font-semibold text-[14px] leading-[21px]"
+                style={{ fontFamily: "Inter" }}
+              >
+                {item}
+              </span>
+            </div>
+          )
+        )}
       </div>
 
       <div className="flex justify-between w-full max-w-md px-4 mt-[15px] text-gray-400">
@@ -117,7 +142,10 @@ export default function MyPage() {
         </span>
       </div>
 
-      <div  onClick={handleWithdrawClick} className="flex justify-end items-center w-full max-w-md px-4 mt-[62px] text-gray-400">
+      <div
+        onClick={handleWithdrawClick}
+        className="flex justify-end items-center w-full max-w-md px-4 mt-[62px] text-gray-400"
+      >
         <span
           className="text-[12px] leading-[18px] mb-[2px]"
           style={{ fontFamily: "Inter" }}
