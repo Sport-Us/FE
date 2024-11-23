@@ -16,17 +16,26 @@ export default function Home() {
       }
 
       const urlParams = new URLSearchParams(window.location.search);
-      const accessToken = urlParams.get("accessToken");
+      const accessTokenFromUrl = urlParams.get("accessToken");
 
-      if (accessToken) {
+      if (accessTokenFromUrl) {
+        // 소셜 로그인일 경우
         try {
-          localStorage.setItem("accessToken", accessToken);
+          localStorage.setItem("accessToken", accessTokenFromUrl);
+          // console.log("소셜 로그인 토큰 저장 성공:", accessTokenFromUrl);
         } catch (error) {
           console.error("로컬 스토리지 저장 중 오류:", error);
         }
       } else {
-        console.error("accessToken이 없습니다.");
-        router.push("/login");
+        // 일반 로그인일 경우 로컬 스토리지에서 토큰 확인
+        const accessToken = localStorage.getItem("accessToken");
+
+        if (!accessToken) {
+          console.error("accessToken이 없습니다. 로그인 페이지로 이동합니다.");
+          router.push("/login");
+        } else {
+          console.log("일반 로그인 토큰 확인 성공:", accessToken);
+        }
       }
     };
 

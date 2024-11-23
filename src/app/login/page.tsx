@@ -17,7 +17,7 @@ export default function Login() {
 
   const handleLoginClick = async () => {
     window.localStorage.removeItem("accessToken");
-
+  
     try {
       const response = await axios.post(
         "/auth/sign-in",
@@ -29,22 +29,26 @@ export default function Login() {
           withCredentials: true,
         }
       );
-
-      console.log("전체 응답 헤더:", response.headers);
+  
+      console.log("전체 응답:", response.data);
+  
       if (response.data?.isSuccess) {
-        // const { accessToken } = response.data;
-
-        // if (accessToken) {
-        //   window.localStorage.setItem("accessToken", accessToken);
-        //   console.log("Access Token 저장 성공:", accessToken);
-        // }
-
-        // const { accessToken } = response.data;
-        // if (accessToken) {
-        //   window.localStorage.setItem("accessToken", accessToken);
-        //   console.log("Access Token 저장 성공:", accessToken);
-
-        router.push("/home");
+        const results = response.data.results || {}; 
+        const accessToken = results.accessToken || ""; 
+        const isOnboarded = results.isOnboarded || false; 
+  
+        if (accessToken) {
+          window.localStorage.setItem("accessToken", accessToken);
+          // console.log("Access Token 저장 성공:", accessToken);
+        } else {
+          console.warn("AccessToken이 응답에 없습니다.");
+        }
+  
+        if (isOnboarded) {
+          router.push("/home"); 
+        } else {
+          router.push("/onboarding");
+        }
       } else {
         throw new Error("로그인 실패: isSuccess가 false입니다.");
       }
@@ -53,6 +57,7 @@ export default function Login() {
       setError("이메일과 비밀번호를 확인해주세요.");
     }
   };
+  
 
   return (
     <div className="flex flex-col items-center min-h-screen bg-white px-4">
