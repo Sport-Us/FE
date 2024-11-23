@@ -5,7 +5,7 @@ import Link from "next/link";
 import Header from "../components/Header";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { axios } from "../../lib/axios";
+import { axios } from "@/lib/axios";
 
 export default function Login() {
   const router = useRouter();
@@ -16,32 +16,43 @@ export default function Login() {
   const isLoginEnabled = email.trim() !== "" && password.trim() !== "";
 
   const handleLoginClick = async () => {
+    window.localStorage.removeItem("accessToken");
+
     try {
       const response = await axios.post(
         "/auth/sign-in",
         { email, password },
-        { withCredentials: true }
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+          withCredentials: true,
+        }
       );
-  
+
       console.log("전체 응답 헤더:", response.headers);
-  
-      const authHeader = response.headers["authorization"];
-  
-      if (authHeader && typeof authHeader === "string" && authHeader.startsWith("Bearer ")) {
-        const token = authHeader.split(" ")[1]; 
-        window.localStorage.setItem("accessToken", token); 
-        console.log("Access Token 저장 성공:", token);
-  
+      if (response.data?.isSuccess) {
+        // const { accessToken } = response.data;
+
+        // if (accessToken) {
+        //   window.localStorage.setItem("accessToken", accessToken);
+        //   console.log("Access Token 저장 성공:", accessToken);
+        // }
+
+        // const { accessToken } = response.data;
+        // if (accessToken) {
+        //   window.localStorage.setItem("accessToken", accessToken);
+        //   console.log("Access Token 저장 성공:", accessToken);
+
         router.push("/home");
       } else {
-        throw new Error("Authorization 헤더가 없습니다.");
+        throw new Error("로그인 실패: isSuccess가 false입니다.");
       }
     } catch (error) {
       console.error("로그인 실패:", error);
       setError("이메일과 비밀번호를 확인해주세요.");
     }
   };
-  
 
   return (
     <div className="flex flex-col items-center min-h-screen bg-white px-4">

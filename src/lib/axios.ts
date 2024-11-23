@@ -20,11 +20,11 @@ axios.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-let isRefreshing = false; 
+let isRefreshing = false;
 let failedQueue: Array<{
   resolve: (value: unknown) => void;
   reject: (reason?: any) => void;
-}> = []; 
+}> = [];
 
 const processQueue = (error: any, token: string | null) => {
   failedQueue.forEach((promise) => {
@@ -35,6 +35,11 @@ const processQueue = (error: any, token: string | null) => {
     }
   });
   failedQueue = [];
+};
+
+const getCookie = (name: string): string | null => {
+  const matches = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`));
+  return matches ? decodeURIComponent(matches[1]) : null;
 };
 
 axios.interceptors.response.use(
@@ -58,15 +63,20 @@ axios.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        
-        const { data } = await Axios.get("/auth/reissue", {
-          withCredentials: true, 
+        const refreshToken = getCookie("REFRESH_TOKEN");
+        if (!refreshToken) {
+          throw new Error("리프레시 토큰이 쿠키에 없습니다.");
+        }
+
+        const { data } = await axios.get("/auth/reissue", {
+          params: { refreshToken },
+          withCredentials: true,
         });
 
         const newAccessToken = data.accessToken;
         window.localStorage.setItem("accessToken", newAccessToken);
 
-        processQueue(null, newAccessToken); 
+        processQueue(null, newAccessToken);
 
         isRefreshing = false;
 

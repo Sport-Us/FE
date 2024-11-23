@@ -11,11 +11,12 @@ export default function Home() {
   };
 
   const handleNaverLoginClick = () => {
+    window.localStorage.removeItem("accessToken");
+
     if (typeof window !== "undefined") {
       window.location.href = "http://43.202.94.217/oauth2/authorization/naver";
     }
   };
-  
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-white">
