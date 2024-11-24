@@ -3,9 +3,13 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-export default function Step3() {
+interface Step3Props {
+  onNext: (selectedItems: string[]) => void;
+}
+
+export default function Step2({ onNext }: Step3Props) {
   const router = useRouter();
-  const [selectedItem, setSelectedItem] = useState<string | null>(null);
+  const [selectedItems, setSelectedItems] = useState<string[]>([]);
 
   const items = [
     "다이어트",
@@ -17,7 +21,11 @@ export default function Step3() {
   ];
 
   const handleItemClick = (item: string) => {
-    setSelectedItem(item === selectedItem ? null : item);
+    setSelectedItems((prevSelectedItems) =>
+      prevSelectedItems.includes(item)
+        ? prevSelectedItems.filter((selectedItem) => selectedItem !== item)
+        : [...prevSelectedItems, item]
+    );
   };
 
   const handleStartClick = () => {
@@ -32,7 +40,7 @@ export default function Step3() {
 
       <div className="mt-[20px] px-2 space-y-[17px]">
         {items.map((item) => {
-          const isSelected = item === selectedItem;
+          const isSelected = selectedItems.includes(item);
 
           return (
             <div

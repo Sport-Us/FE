@@ -3,11 +3,11 @@
 import { useState } from "react";
 
 interface Step2Props {
-  onNext: () => void;
+  onNext: (selectedItems: string[]) => void;
 }
 
 export default function Step2({ onNext }: Step2Props) {
-  const [selectedItem, setSelectedItem] = useState<string | null>(null);
+  const [selectedItems, setSelectedItems] = useState<string[]>([]);
 
   const items = [
     "가까운 곳이 좋아요",
@@ -26,8 +26,14 @@ export default function Step2({ onNext }: Step2Props) {
   ];
 
   const handleItemClick = (item: string) => {
-    setSelectedItem(item === selectedItem ? null : item);
+    setSelectedItems((prevSelected) =>
+      prevSelected.includes(item)
+        ? prevSelected.filter((i) => i !== item)
+        : [...prevSelected, item]
+    );
   };
+
+  const isNextButtonEnabled = selectedItems.length > 0;
 
   return (
     <div className="relative flex flex-col items-center min-h-screen pt-[60px]">
@@ -39,7 +45,7 @@ export default function Step2({ onNext }: Step2Props) {
 
       <div className="overflow-y-auto h-[427px] mt-[20px] px-2 space-y-[17px]">
         {items.map((item) => {
-          const isSelected = item === selectedItem;
+          const isSelected = selectedItems.includes(item);
 
           return (
             <div
@@ -90,8 +96,13 @@ export default function Step2({ onNext }: Step2Props) {
         </div>
 
         <button
-          onClick={onNext}
-          className="flex justify-center items-center w-[343px] h-[50px] rounded-[10px] text-[14px] font-semibold leading-[21px] bg-[#0187BA] text-white"
+          onClick={() => onNext(selectedItems)}
+          disabled={!isNextButtonEnabled}
+          className={`flex justify-center items-center w-[343px] h-[50px] rounded-[10px] text-[14px] font-semibold leading-[21px] ${
+            isNextButtonEnabled
+              ? "bg-[#0187BA] text-white"
+              : "bg-[#E8E8E8] text-[#FFFFFF]"
+          }`}
         >
           다음
         </button>

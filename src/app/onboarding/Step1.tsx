@@ -3,18 +3,17 @@
 import { useState } from "react";
 
 interface Step1Props {
-  onNext: () => void;
+  onNext: (selectedItems: string[]) => void;
 }
 
 export default function Step1({ onNext }: Step1Props) {
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
 
   const handleItemClick = (item: string) => {
-    setSelectedItems(
-      (prevSelected) =>
-        prevSelected.includes(item)
-          ? prevSelected.filter((i) => i !== item)
-          : [...prevSelected, item]
+    setSelectedItems((prevSelected) =>
+      prevSelected.includes(item)
+        ? prevSelected.filter((i) => i !== item)
+        : [...prevSelected, item]
     );
   };
 
@@ -92,7 +91,7 @@ export default function Step1({ onNext }: Step1Props) {
         </div>
 
         <button
-          onClick={onNext}
+          onClick={() => onNext(selectedItems)}
           disabled={!isNextButtonEnabled}
           className={`flex justify-center items-center w-[343px] h-[50px] rounded-[10px] text-[14px] font-semibold leading-[21px] ${
             isNextButtonEnabled
