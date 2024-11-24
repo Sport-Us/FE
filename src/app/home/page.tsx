@@ -63,6 +63,48 @@ export default function Home() {
   );
   const [selectedDistance, setSelectedDistance] = useState<string>("제한 없음");
   const distanceOptions = ["500m", "1km", "2km", "5km", "10km", "제한 없음"];
+  const categories = [
+    "전체",
+    "태권도",
+    "헬스",
+    "축구(풋살)",
+    "볼링",
+    "유도",
+    "요가",
+    "농구",
+    "당구",
+    "복싱",
+    "필라테스",
+    "배구",
+    "클라이밍",
+    "주짓수",
+    "크로스핏",
+    "야구",
+    "롤러라인",
+    "검도",
+    "에어로빅",
+    "탁구",
+    "빙상(스케이트)",
+    "합기도",
+    "댄스(줌바 등)",
+    "스쿼시",
+    "기타종목",
+    "배드민턴",
+    "종합체육시설",
+    "테니스",
+    "무용(발레 등)",
+    "골프",
+    "줄넘기",
+    "펜싱",
+    "수영",
+    "승마",
+  ];
+
+  const handleCategorySelect = (category: string) => {
+    setSelectedCategory(category);
+    setFilterModalVisible(false);
+    console.log("선택된 카테고리:", category);
+  };
 
   const allResults = [
     {
@@ -634,52 +676,263 @@ export default function Home() {
               </button>
             </div>
 
-            <div
-              className="flex items-center w-[343px] h-[36px] py-[10px] px-[16px] gap-[4px] bg-[#F8F9FA] rounded-lg"
-              onClick={() => setSearchActive(true)}
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                viewBox="0 0 16 16"
-                fill="none"
+            <div className="flex items-center w-[343px] h-[36px] gap-[8px]">
+              <div
+                className="flex items-center justify-center w-[75px] h-[32px] flex-shrink-0 rounded-[20px] bg-[#EEE] cursor-pointer"
+                style={{ color: "var(--Black, #1A1A1B)", textAlign: "center" }}
+                onClick={() => setFilterModalVisible(true)}
               >
-                <g clip-path="url(#clip0_431_494)">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="14"
+                  viewBox="0 0 16 14"
+                  fill="none"
+                >
                   <path
-                    fill-rule="evenodd"
-                    clip-rule="evenodd"
-                    d="M6.56188 1.7499C5.61461 1.7426 4.68649 2.01674 3.89521 2.53756C3.10392 3.05837 2.4851 3.80241 2.11719 4.67536C1.74928 5.5483 1.64885 6.51082 1.82864 7.44091C2.00843 8.371 2.46033 9.22675 3.12706 9.8997C3.79379 10.5726 4.64533 11.0325 5.5737 11.2209C6.50208 11.4093 7.4655 11.3178 8.34181 10.958C9.21813 10.5982 9.96788 9.98628 10.496 9.19985C11.0241 8.41343 11.3069 7.4879 11.3084 6.5406L11.9334 6.54158L11.3084 6.53964C11.3123 5.27577 10.815 4.0619 9.92544 3.16407C9.0359 2.26624 7.82669 1.7577 6.56284 1.7499L6.56188 1.7499ZM12.5584 6.54304C12.5564 7.73773 12.1998 8.90494 11.5337 9.89674C10.8676 10.8887 9.9219 11.6605 8.81658 12.1143C7.71126 12.5681 6.49609 12.6835 5.3251 12.4459C4.15411 12.2083 3.08005 11.6283 2.23909 10.7795C1.39812 9.93067 0.828127 8.85128 0.601357 7.67814C0.374588 6.505 0.50126 5.29095 0.965314 4.18989C1.42937 3.08882 2.20991 2.15035 3.20797 1.49343C4.20604 0.836507 5.37669 0.490731 6.57151 0.499935L6.5667 1.12492L6.57055 0.499928C6.57087 0.49993 6.57119 0.499933 6.57151 0.499935C8.16586 0.510023 9.69123 1.15166 10.8134 2.2843C11.9357 3.41704 12.5632 4.94849 12.5584 6.54304Z"
-                    fill="#8E9398"
+                    d="M6 4.12473e-07C5.37935 -0.00032496 4.77387 0.191856 4.26702 0.550057C3.76016 0.908257 3.37688 1.41484 3.17 2H0V4H3.17C3.3766 4.58553 3.75974 5.09257 4.2666 5.45121C4.77346 5.80986 5.37909 6.00245 6 6.00245C6.62091 6.00245 7.22654 5.80986 7.7334 5.45121C8.24026 5.09257 8.6234 4.58553 8.83 4H16V2H8.83C8.62312 1.41484 8.23984 0.908257 7.73298 0.550057C7.22613 0.191856 6.62065 -0.00032496 6 4.12473e-07ZM5 3C5 2.73478 5.10536 2.48043 5.29289 2.29289C5.48043 2.10536 5.73478 2 6 2C6.26522 2 6.51957 2.10536 6.70711 2.29289C6.89464 2.48043 7 2.73478 7 3C7 3.26522 6.89464 3.51957 6.70711 3.70711C6.51957 3.89464 6.26522 4 6 4C5.73478 4 5.48043 3.89464 5.29289 3.70711C5.10536 3.51957 5 3.26522 5 3ZM10 8C9.37935 7.99967 8.77387 8.19186 8.26702 8.55006C7.76016 8.90826 7.37688 9.41484 7.17 10H0V12H7.17C7.3766 12.5855 7.75974 13.0926 8.2666 13.4512C8.77346 13.8099 9.37909 14.0025 10 14.0025C10.6209 14.0025 11.2265 13.8099 11.7334 13.4512C12.2403 13.0926 12.6234 12.5855 12.83 12H16V10H12.83C12.6231 9.41484 12.2398 8.90826 11.733 8.55006C11.2261 8.19186 10.6207 7.99967 10 8ZM9 11C9 10.7348 9.10536 10.4804 9.29289 10.2929C9.48043 10.1054 9.73478 10 10 10C10.2652 10 10.5196 10.1054 10.7071 10.2929C10.8946 10.4804 11 10.7348 11 11C11 11.2652 10.8946 11.5196 10.7071 11.7071C10.5196 11.8946 10.2652 12 10 12C9.73478 12 9.48043 11.8946 9.29289 11.7071C9.10536 11.5196 9 11.2652 9 11Z"
+                    fill="black"
                   />
-                  <path
-                    fill-rule="evenodd"
-                    clip-rule="evenodd"
-                    d="M10.2668 10.2576C10.5111 10.0137 10.9069 10.0141 11.1507 10.2585L15.3174 14.4335C15.5612 14.6778 15.5608 15.0735 15.3165 15.3173C15.0722 15.5612 14.6764 15.5608 14.4326 15.3165L10.2659 11.1415C10.0221 10.8971 10.0225 10.5014 10.2668 10.2576Z"
-                    fill="#8E9398"
-                  />
-                </g>
-                <defs>
-                  <clipPath id="clip0_431_494">
-                    <rect
-                      width="15"
-                      height="15"
-                      fill="white"
-                      transform="translate(0.5 0.5)"
+                </svg>
+                <span
+                  style={{
+                    fontFamily: "Inter",
+                    fontSize: "12px",
+                    fontStyle: "normal",
+                    fontWeight: 600,
+                    lineHeight: "18px",
+                    marginLeft: "4px",
+                  }}
+                >
+                  필터
+                </span>
+              </div>
+
+              <div
+                className="flex items-center gap-[4px] flex-1 h-[32px] px-[16px] bg-[#F8F9FA] rounded-lg"
+                style={{ width: "281px" }}
+                onClick={() => setSearchActive(true)}
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                >
+                  <g clipPath="url(#clip0_431_494)">
+                    <path
+                      fillRule="evenodd"
+                      clipRule="evenodd"
+                      d="M6.56188 1.7499C5.61461 1.7426 4.68649 2.01674 3.89521 2.53756C3.10392 3.05837 2.4851 3.80241 2.11719 4.67536C1.74928 5.5483 1.64885 6.51082 1.82864 7.44091C2.00843 8.371 2.46033 9.22675 3.12706 9.8997C3.79379 10.5726 4.64533 11.0325 5.5737 11.2209C6.50208 11.4093 7.4655 11.3178 8.34181 10.958C9.21813 10.5982 9.96788 9.98628 10.496 9.19985C11.0241 8.41343 11.3069 7.4879 11.3084 6.5406L11.9334 6.54158L11.3084 6.53964C11.3123 5.27577 10.815 4.0619 9.92544 3.16407C9.0359 2.26624 7.82669 1.7577 6.56284 1.7499L6.56188 1.7499ZM12.5584 6.54304C12.5564 7.73773 12.1998 8.90494 11.5337 9.89674C10.8676 10.8887 9.9219 11.6605 8.81658 12.1143C7.71126 12.5681 6.49609 12.6835 5.3251 12.4459C4.15411 12.2083 3.08005 11.6283 2.23909 10.7795C1.39812 9.93067 0.828127 8.85128 0.601357 7.67814C0.374588 6.505 0.50126 5.29095 0.965314 4.18989C1.42937 3.08882 2.20991 2.15035 3.20797 1.49343C4.20604 0.836507 5.37669 0.490731 6.57151 0.499935L6.5667 1.12492L6.57055 0.499928C6.57087 0.49993 6.57119 0.499933 6.57151 0.499935C8.16586 0.510023 9.69123 1.15166 10.8134 2.2843C11.9357 3.41704 12.5632 4.94849 12.5584 6.54304Z"
+                      fill="#8E9398"
                     />
-                  </clipPath>
-                </defs>
-              </svg>
-              <input
-                type="text"
-                placeholder="검색어를 입력해 주세요."
-                className="flex-1 bg-transparent text-[#8E9398] text-[14px] font-normal outline-none placeholder-[#8E9398]"
-                readOnly
-              />
+                    <path
+                      fillRule="evenodd"
+                      clipRule="evenodd"
+                      d="M10.2668 10.2576C10.5111 10.0137 10.9069 10.0141 11.1507 10.2585L15.3174 14.4335C15.5612 14.6778 15.5608 15.0735 15.3165 15.3173C15.0722 15.5612 14.6764 15.5608 14.4326 15.3165L10.2659 11.1415C10.0221 10.8971 10.0225 10.5014 10.2668 10.2576Z"
+                      fill="#8E9398"
+                    />
+                  </g>
+                  <defs>
+                    <clipPath id="clip0_431_494">
+                      <rect
+                        width="15"
+                        height="15"
+                        fill="white"
+                        transform="translate(0.5 0.5)"
+                      />
+                    </clipPath>
+                  </defs>
+                </svg>
+                <input
+                  type="text"
+                  placeholder="검색어를 입력해 주세요."
+                  className="flex-1 bg-transparent text-[#8E9398] text-[14px] font-normal outline-none"
+                  readOnly
+                />
+              </div>
             </div>
           </div>
         </div>
       )}
+      {filterModalVisible && (
+        <div
+          className="fixed inset-0 bg-[rgba(0,0,0,0.4)] z-50 flex justify-center items-end"
+          onClick={() => setFilterModalVisible(false)}
+        >
+          <div
+            className="w-full max-w-[375px] h-[280px] bg-white rounded-t-[20px] p-3"
+            onClick={(e) => e.stopPropagation()} 
+          >
+            <div className="flex flex-col gap-3">
+              <div className="flex flex-wrap justify-center gap-2">
+                {[
+                  "전체",
+                  "태권도",
+                  "유도",
+                  "복싱",
+                  "주짓수",
+                  "검도",
+                  "합기도",
+                ].map((category) => (
+                  <button
+                    key={category}
+                    className={`text-xs font-medium ${
+                      selectedCategory === category
+                        ? "border border-[#1A1A1B] text-white"
+                        : "text-black"
+                    } px-3 py-1 rounded-lg`}
+                    style={{
+                      backgroundColor:
+                        category === "전체"
+                          ? selectedCategory === category
+                            ? "#1A1A1B"
+                            : "#F3F5F7"
+                          : selectedCategory === category
+                          ? "#1A1A1B"
+                          : "#E0F8F7",
+                      color:
+                        category === "전체" && selectedCategory !== category
+                          ? "#1A1A1B"
+                          : selectedCategory === category
+                          ? "white"
+                          : "black",
+                    }}
+                    onClick={() => handleCategorySelect(category)}
+                  >
+                    {category}
+                  </button>
+                ))}
+              </div>
+
+              <div className="flex flex-wrap justify-center gap-2">
+                {[
+                  "헬스",
+                  "요가",
+                  "필라테스",
+                  "크로스핏",
+                  "에어로빅",
+                  "댄스(줌바 등)",
+                ].map((category) => (
+                  <button
+                    key={category}
+                    className={`text-xs font-medium ${
+                      selectedCategory === category
+                        ? "border border-[#1A1A1B] text-white"
+                        : "text-black"
+                    } px-3 py-1 rounded-lg`}
+                    style={{
+                      backgroundColor:
+                        selectedCategory === category ? "#1A1A1B" : "#E8EAF6",
+                      color: selectedCategory === category ? "white" : "black",
+                    }}
+                    onClick={() => handleCategorySelect(category)}
+                  >
+                    {category}
+                  </button>
+                ))}
+              </div>
+
+              <div className="flex flex-wrap justify-center gap-2">
+                {[
+                  "축구(풋살)",
+                  "농구",
+                  "배구",
+                  "야구",
+                  "탁구",
+                  "스쿼시",
+                  "배드민턴",
+                  "테니스",
+                  "골프",
+                ].map((category) => (
+                  <button
+                    key={category}
+                    className={`text-xs font-medium ${
+                      selectedCategory === category
+                        ? "border border-[#1A1A1B] text-white"
+                        : "text-black"
+                    } px-3 py-1 rounded-lg`}
+                    style={{
+                      backgroundColor:
+                        selectedCategory === category ? "#1A1A1B" : "#E5F9EE",
+                      color: selectedCategory === category ? "white" : "black",
+                    }}
+                    onClick={() => handleCategorySelect(category)}
+                  >
+                    {category}
+                  </button>
+                ))}
+              </div>
+
+              <div className="flex flex-wrap justify-center gap-2">
+                {[
+                  "볼링",
+                  "당구",
+                  "클라이밍",
+                  "롤러인라인",
+                  "빙상(스케이트)",
+                  "기타종목",
+                  "종합체육시설",
+                  "무용",
+                  "줄넘기",
+                  "펜싱",
+                  "수영",
+                  "승마",
+                ].map((category) => (
+                  <button
+                    key={category}
+                    className={`text-xs font-medium ${
+                      selectedCategory === category
+                        ? "border border-[#1A1A1B] text-white"
+                        : "text-black"
+                    } px-3 py-1 rounded-lg`}
+                    style={{
+                      backgroundColor:
+                        selectedCategory === category ? "#1A1A1B" : "#FDE6F4",
+                      color: selectedCategory === category ? "white" : "black",
+                    }}
+                    onClick={() => handleCategorySelect(category)}
+                  >
+                    {category}
+                  </button>
+                ))}
+              </div>
+
+              <div className="flex flex-wrap justify-center gap-2">
+                {[
+                  "기타종목",
+                  "배드민턴",
+                  "테니스",
+                  "골프",
+                  "줄넘기",
+                  "펜싱",
+                  "수영",
+                  "승마",
+                ].map((category) => (
+                  <button
+                    key={category}
+                    className={`text-xs font-medium ${
+                      selectedCategory === category
+                        ? "border border-[#1A1A1B] text-white"
+                        : "text-black"
+                    } px-3 py-1 rounded-lg`}
+                    style={{
+                      backgroundColor:
+                        selectedCategory === category ? "#1A1A1B" : "#E8E8E8",
+                      color: selectedCategory === category ? "white" : "black",
+                    }}
+                    onClick={() => handleCategorySelect(category)}
+                  >
+                    {category}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <Footer />
     </div>
   );
