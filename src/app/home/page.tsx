@@ -42,10 +42,62 @@ export default function Home() {
     handleTokenExtraction();
   }, [router]);
 
+  const facilityCategories = [
+    { name: "전체", bgColor: "#F3F5F7" },
+    { name: "취약계층", bgColor: "#E5F9EE" },
+    { name: "공공시설", bgColor: "#E0F8F7" },
+    { name: "학교", bgColor: "#E0F4FD" },
+    { name: "민간시설", bgColor: "#E8EAF6" },
+  ];
+  const lectureCategories = [
+    { name: "전체", bgColor: "#F3F5F7" },
+    { name: "태권도", bgColor: "#E0F8F7" },
+    { name: "유도", bgColor: "#E0F8F7" },
+    { name: "복싱", bgColor: "#E0F8F7" },
+    { name: "주짓수", bgColor: "#E0F8F7" },
+    { name: "검도", bgColor: "#E0F8F7" },
+    { name: "합기도", bgColor: "#E0F8F7" },
+    { name: "헬스", bgColor: "#E8EAF6" },
+    { name: "요가", bgColor: "#E8EAF6" },
+    { name: "필라테스", bgColor: "#E8EAF6" },
+    { name: "크로스핏", bgColor: "#E8EAF6" },
+    { name: "에어로빅", bgColor: "#E8EAF6" },
+    { name: "댄스", bgColor: "#E8EAF6" },
+    { name: "축구", bgColor: "#E5F9EE" },
+    { name: "농구", bgColor: "#E5F9EE" },
+    { name: "배구", bgColor: "#E5F9EE" },
+    { name: "야구", bgColor: "#E5F9EE" },
+    { name: "탁구", bgColor: "#E5F9EE" },
+    { name: "스쿼시", bgColor: "#E5F9EE" },
+    { name: "배드민턴", bgColor: "#E5F9EE" },
+    { name: "테니스", bgColor: "#E5F9EE" },
+    { name: "골프", bgColor: "#E5F9EE" },
+    { name: "볼링", bgColor: "#FDE6F4" },
+    { name: "당구", bgColor: "#FDE6F4" },
+    { name: "클라이밍", bgColor: "#FDE6F4" },
+    { name: "롤러인라인", bgColor: "#FDE6F4" },
+    { name: "빙상(스케이트)", bgColor: "#FDE6F4" },
+    { name: "기타종목", bgColor: "#FDE6F4" },
+    { name: "종합체육시설", bgColor: "#FDE6F4" },
+    { name: "무용", bgColor: "#FDE6F4" },
+    { name: "줄넘기", bgColor: "#FDE6F4" },
+    { name: "펜싱", bgColor: "#FDE6F4" },
+    { name: "수영", bgColor: "#FDE6F4" },
+    { name: "승마", bgColor: "#FDE6F4" },
+  ];
+
   const [selectedTab, setSelectedTab] = useState<"체육 강좌" | "체육 시설">(
     "체육 강좌"
   );
-  const [selectedCategory, setSelectedCategory] = useState("전체");
+  const [selectedLectureCategories, setSelectedLectureCategories] = useState<
+    string[]
+  >(["전체"]);
+  const [selectedFacilityCategories, setSelectedFacilityCategories] = useState<
+    string[]
+  >(["전체"]);
+  const currentCategories =
+    selectedTab === "체육 강좌" ? lectureCategories : facilityCategories;
+
   const [map, setMap] = useState<any>(null);
   const [searchActive, setSearchActive] = useState(false);
   const [searchInput, setSearchInput] = useState("");
@@ -64,7 +116,11 @@ export default function Home() {
   const [selectedDistance, setSelectedDistance] = useState<string>("제한 없음");
   const distanceOptions = ["500m", "1km", "2km", "5km", "10km", "제한 없음"];
   const [markers, setMarkers] = useState<any[]>([]);
-
+  
+  useEffect(() => {
+    clearMarkers();
+  }, [selectedTab]);
+  
   const clearMarkers = () => {
     markers.forEach((marker) => marker.setMap(null));
     setMarkers([]);
@@ -83,8 +139,8 @@ export default function Home() {
     필라테스: "PILATES",
     크로스핏: "CROSSFIT",
     에어로빅: "AEROBICS",
-    "댄스(줌바 등)": "DANCE",
-    "축구(풋살)": "SOCCER",
+    댄스: "DANCE",
+    축구: "SOCCER",
     농구: "BASKETBALL",
     배구: "VOLLEYBALL",
     야구: "BASEBALL",
@@ -97,7 +153,7 @@ export default function Home() {
     당구: "BILLIARDS",
     클라이밍: "CLIMBING",
     롤러라인: "ROLLER_SKATING",
-    "빙상(스케이트)": "ICE_SKATING",
+    빙상: "ICE_SKATING",
     기타종목: "ETC",
     종합체육시설: "COMPREHENSIVE",
     "무용(발레 등)": "BALLET",
@@ -105,18 +161,45 @@ export default function Home() {
     펜싱: "PENCING",
     수영: "SWIMMING",
     승마: "RIDING",
+
+    취약계층: "DISABLED",
+    공공시설: "PUBLIC",
+    학교: "SCHOOL",
+    민간시설: "PRIVATE",
   };
 
-  const fetchLectures = async (
+  const fetchPlaces = async (
     latitude: number,
     longitude: number,
     radius: number,
-    category: string
+    categories: string[]
   ) => {
+    const endpoint =
+      selectedTab === "체육 강좌"
+        ? "/places/nearby/lectures"
+        : "/places/nearby/facilities";
+
+    const mappedCategories = categories
+      .map((cat) => categoryMap[cat]) 
+      .join(",");
+
+    // console.log("API 요청:", {
+    //   latitude,
+    //   longitude,
+    //   radius,
+    //   category: mappedCategories,
+    // });
+
     try {
-      const response = await axios.get("/places/nearby/lectures", {
-        params: { latitude, longitude, radius, category },
+      const response = await axios.get(endpoint, {
+        params: {
+          latitude,
+          longitude,
+          radius,
+          category: mappedCategories,
+        },
       });
+
       if (response.data.isSuccess) {
         return response.data.results.placeList;
       }
@@ -128,39 +211,60 @@ export default function Home() {
     }
   };
 
-  useEffect(() => {
-    if (map) {
-      handleCategorySelect("전체");
+  const handleCategoryToggle = (category: string) => {
+    if (selectedTab === "체육 강좌") {
+      setSelectedLectureCategories((prev) =>
+        prev.includes(category)
+          ? prev.filter((cat) => cat !== category)
+          : [...prev, category]
+      );
+    } else if (selectedTab === "체육 시설") {
+      setSelectedFacilityCategories((prev) =>
+        prev.includes(category)
+          ? prev.filter((cat) => cat !== category)
+          : [...prev, category]
+      );
     }
-  }, [map]);
-  
-  const handleCategorySelect = async (category: string) => {
-    setSelectedCategory(category);
-    setFilterModalVisible(false);
+  };
 
-    const mappedCategory = categoryMap[category];
+  const handleCategoryApply = async () => {
     if (!map || !navigator.geolocation) return;
 
     navigator.geolocation.getCurrentPosition(
       async (position) => {
         const { latitude, longitude } = position.coords;
-        const radius =
-          selectedDistance === "제한 없음" ? 10000 : parseInt(selectedDistance);
 
-        const lectures = await fetchLectures(
+        const radius =
+          selectedDistance === "제한 없음"
+            ? 3000 // 기본 반경
+            : parseInt(selectedDistance.replace("km", "").replace("m", "")) *
+              1000;
+
+        const categoriesToSend =
+          selectedTab === "체육 강좌"
+            ? selectedLectureCategories
+            : selectedFacilityCategories;
+
+        const endpoint =
+          selectedTab === "체육 강좌"
+            ? "/places/nearby/lectures"
+            : "/places/nearby/facilities";
+
+        const places = await fetchPlaces(
           latitude,
           longitude,
           radius,
-          mappedCategory
+          categoriesToSend
         );
+
         clearMarkers();
-        const newMarkers = lectures.map(
-          (lecture: { category: string; latitude: any; longitude: any }) => {
-            const markerImage = `/${lecture.category.toLowerCase()}.png?v=${Date.now()}`;
-            const marker = new window.naver.maps.Marker({
+        const newMarkers = places.map(
+          (place: { category: string; latitude: any; longitude: any }) => {
+            const markerImage = `/${place.category.toLowerCase()}.png?v=${Date.now()}`;
+            return new window.naver.maps.Marker({
               position: new window.naver.maps.LatLng(
-                lecture.latitude,
-                lecture.longitude
+                place.latitude,
+                place.longitude
               ),
               map,
               icon: {
@@ -168,9 +272,7 @@ export default function Home() {
                 size: new window.naver.maps.Size(48, 48),
                 scaledSize: new window.naver.maps.Size(48, 48),
               },
-              
             });
-            return marker;
           }
         );
 
@@ -838,172 +940,44 @@ export default function Home() {
           onClick={() => setFilterModalVisible(false)}
         >
           <div
-            className="w-full max-w-[375px] h-[280px] bg-white rounded-t-[20px] p-3"
+            className="w-full max-w-[375px] h-auto bg-white rounded-t-[20px] p-3"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex flex-col gap-3">
-              <div className="flex flex-wrap justify-center gap-2">
-                {[
-                  "전체",
-                  "태권도",
-                  "유도",
-                  "복싱",
-                  "주짓수",
-                  "검도",
-                  "합기도",
-                ].map((category) => (
-                  <button
-                    key={category}
-                    className={`text-xs font-medium ${
-                      selectedCategory === category
-                        ? "border border-[#1A1A1B] text-white"
-                        : "text-black"
-                    } px-3 py-1 rounded-lg`}
-                    style={{
-                      backgroundColor:
-                        category === "전체"
-                          ? selectedCategory === category
-                            ? "#1A1A1B"
-                            : "#F3F5F7"
-                          : selectedCategory === category
-                          ? "#1A1A1B"
-                          : "#E0F8F7",
-                      color:
-                        category === "전체" && selectedCategory !== category
-                          ? "#1A1A1B"
-                          : selectedCategory === category
-                          ? "white"
-                          : "black",
-                    }}
-                    onClick={() => handleCategorySelect(category)}
-                  >
-                    {category}
-                  </button>
-                ))}
-              </div>
+            <div className="flex flex-wrap justify-center gap-2">
+              {currentCategories.map((category) => {
+                const isSelected =
+                  selectedTab === "체육 강좌"
+                    ? selectedLectureCategories.includes(category.name)
+                    : selectedFacilityCategories.includes(category.name);
 
-              <div className="flex flex-wrap justify-center gap-2">
-                {[
-                  "헬스",
-                  "요가",
-                  "필라테스",
-                  "크로스핏",
-                  "에어로빅",
-                  "댄스(줌바 등)",
-                ].map((category) => (
+                return (
                   <button
-                    key={category}
+                    key={category.name}
                     className={`text-xs font-medium ${
-                      selectedCategory === category
+                      isSelected
                         ? "border border-[#1A1A1B] text-white"
                         : "text-black"
                     } px-3 py-1 rounded-lg`}
                     style={{
-                      backgroundColor:
-                        selectedCategory === category ? "#1A1A1B" : "#E8EAF6",
-                      color: selectedCategory === category ? "white" : "black",
+                      backgroundColor: isSelected
+                        ? "#1A1A1B"
+                        : category.bgColor,
+                      color: isSelected ? "white" : "black",
                     }}
-                    onClick={() => handleCategorySelect(category)}
+                    onClick={() => handleCategoryToggle(category.name)}
                   >
-                    {category}
+                    {category.name}
                   </button>
-                ))}
-              </div>
-
-              <div className="flex flex-wrap justify-center gap-2">
-                {[
-                  "축구(풋살)",
-                  "농구",
-                  "배구",
-                  "야구",
-                  "탁구",
-                  "스쿼시",
-                  "배드민턴",
-                  "테니스",
-                  "골프",
-                ].map((category) => (
-                  <button
-                    key={category}
-                    className={`text-xs font-medium ${
-                      selectedCategory === category
-                        ? "border border-[#1A1A1B] text-white"
-                        : "text-black"
-                    } px-3 py-1 rounded-lg`}
-                    style={{
-                      backgroundColor:
-                        selectedCategory === category ? "#1A1A1B" : "#E5F9EE",
-                      color: selectedCategory === category ? "white" : "black",
-                    }}
-                    onClick={() => handleCategorySelect(category)}
-                  >
-                    {category}
-                  </button>
-                ))}
-              </div>
-
-              <div className="flex flex-wrap justify-center gap-2">
-                {[
-                  "볼링",
-                  "당구",
-                  "클라이밍",
-                  "롤러인라인",
-                  "빙상(스케이트)",
-                  "기타종목",
-                  "종합체육시설",
-                  "무용",
-                  "줄넘기",
-                  "펜싱",
-                  "수영",
-                  "승마",
-                ].map((category) => (
-                  <button
-                    key={category}
-                    className={`text-xs font-medium ${
-                      selectedCategory === category
-                        ? "border border-[#1A1A1B] text-white"
-                        : "text-black"
-                    } px-3 py-1 rounded-lg`}
-                    style={{
-                      backgroundColor:
-                        selectedCategory === category ? "#1A1A1B" : "#FDE6F4",
-                      color: selectedCategory === category ? "white" : "black",
-                    }}
-                    onClick={() => handleCategorySelect(category)}
-                  >
-                    {category}
-                  </button>
-                ))}
-              </div>
-
-              <div className="flex flex-wrap justify-center gap-2">
-                {[
-                  "기타종목",
-                  "배드민턴",
-                  "테니스",
-                  "골프",
-                  "줄넘기",
-                  "펜싱",
-                  "수영",
-                  "승마",
-                ].map((category) => (
-                  <button
-                    key={category}
-                    className={`text-xs font-medium ${
-                      selectedCategory === category
-                        ? "border border-[#1A1A1B] text-white"
-                        : "text-black"
-                    } px-3 py-1 rounded-lg`}
-                    style={{
-                      backgroundColor:
-                        selectedCategory === category ? "#1A1A1B" : "#E8E8E8",
-                      color: selectedCategory === category ? "white" : "black",
-                    }}
-                    onClick={() => handleCategorySelect(category)}
-                  >
-                    {category}
-                  </button>
-                ))}
-              </div>
+                );
+              })}
+            </div>
+            <div className="w-full text-center mt-4">
+              <button
+                className="px-4 py-2 bg-[#1A1A1B] text-white rounded-lg"
+                onClick={handleCategoryApply}
+              >
+                적용하기
+              </button>
             </div>
           </div>
         </div>
