@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-
+import { axios } from "@/lib/axios";
 import Footer from "../components/Footer";
 
 export default function Home() {
@@ -63,47 +63,123 @@ export default function Home() {
   );
   const [selectedDistance, setSelectedDistance] = useState<string>("제한 없음");
   const distanceOptions = ["500m", "1km", "2km", "5km", "10km", "제한 없음"];
-  const categories = [
-    "전체",
-    "태권도",
-    "헬스",
-    "축구(풋살)",
-    "볼링",
-    "유도",
-    "요가",
-    "농구",
-    "당구",
-    "복싱",
-    "필라테스",
-    "배구",
-    "클라이밍",
-    "주짓수",
-    "크로스핏",
-    "야구",
-    "롤러라인",
-    "검도",
-    "에어로빅",
-    "탁구",
-    "빙상(스케이트)",
-    "합기도",
-    "댄스(줌바 등)",
-    "스쿼시",
-    "기타종목",
-    "배드민턴",
-    "종합체육시설",
-    "테니스",
-    "무용(발레 등)",
-    "골프",
-    "줄넘기",
-    "펜싱",
-    "수영",
-    "승마",
-  ];
+  const [markers, setMarkers] = useState<any[]>([]);
 
-  const handleCategorySelect = (category: string) => {
+  const clearMarkers = () => {
+    markers.forEach((marker) => marker.setMap(null));
+    setMarkers([]);
+  };
+
+  const categoryMap: Record<string, string> = {
+    전체: "ALL",
+    태권도: "TAEKWONDO",
+    유도: "JUDO",
+    복싱: "BOXING",
+    주짓수: "JUJITSU",
+    검도: "KENDO",
+    합기도: "HAPKIDO",
+    헬스: "HEALTH",
+    요가: "YOGA",
+    필라테스: "PILATES",
+    크로스핏: "CROSSFIT",
+    에어로빅: "AEROBICS",
+    "댄스(줌바 등)": "DANCE",
+    "축구(풋살)": "SOCCER",
+    농구: "BASKETBALL",
+    배구: "VOLLEYBALL",
+    야구: "BASEBALL",
+    탁구: "TABLE_TENNIS",
+    스쿼시: "SQUASH",
+    배드민턴: "BADMINTON",
+    테니스: "TENNIS",
+    골프: "GOLF",
+    볼링: "BOWLING",
+    당구: "BILLIARDS",
+    클라이밍: "CLIMBING",
+    롤러라인: "ROLLER_SKATING",
+    "빙상(스케이트)": "ICE_SKATING",
+    기타종목: "ETC",
+    종합체육시설: "COMPREHENSIVE",
+    "무용(발레 등)": "BALLET",
+    줄넘기: "JUMPING_ROPE",
+    펜싱: "PENCING",
+    수영: "SWIMMING",
+    승마: "RIDING",
+  };
+
+  const fetchLectures = async (
+    latitude: number,
+    longitude: number,
+    radius: number,
+    category: string
+  ) => {
+    try {
+      const response = await axios.get("/places/nearby/lectures", {
+        params: { latitude, longitude, radius, category },
+      });
+      if (response.data.isSuccess) {
+        return response.data.results.placeList;
+      }
+      console.error("API 호출 실패:", response.data.message);
+      return [];
+    } catch (error) {
+      console.error("API 호출 에러:", error);
+      return [];
+    }
+  };
+
+  useEffect(() => {
+    if (map) {
+      handleCategorySelect("전체");
+    }
+  }, [map]);
+  
+  const handleCategorySelect = async (category: string) => {
     setSelectedCategory(category);
     setFilterModalVisible(false);
-    console.log("선택된 카테고리:", category);
+
+    const mappedCategory = categoryMap[category];
+    if (!map || !navigator.geolocation) return;
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+        const radius =
+          selectedDistance === "제한 없음" ? 10000 : parseInt(selectedDistance);
+
+        const lectures = await fetchLectures(
+          latitude,
+          longitude,
+          radius,
+          mappedCategory
+        );
+        clearMarkers();
+        const newMarkers = lectures.map(
+          (lecture: { category: string; latitude: any; longitude: any }) => {
+            const markerImage = `/${lecture.category.toLowerCase()}.png?v=${Date.now()}`;
+            const marker = new window.naver.maps.Marker({
+              position: new window.naver.maps.LatLng(
+                lecture.latitude,
+                lecture.longitude
+              ),
+              map,
+              icon: {
+                url: markerImage,
+                size: new window.naver.maps.Size(48, 48),
+                scaledSize: new window.naver.maps.Size(48, 48),
+              },
+              
+            });
+            return marker;
+          }
+        );
+
+        setMarkers(newMarkers);
+      },
+      (error) => {
+        console.error("위치 정보 가져오기 실패:", error);
+      }
+    );
   };
 
   const allResults = [
@@ -763,7 +839,7 @@ export default function Home() {
         >
           <div
             className="w-full max-w-[375px] h-[280px] bg-white rounded-t-[20px] p-3"
-            onClick={(e) => e.stopPropagation()} 
+            onClick={(e) => e.stopPropagation()}
           >
             <div className="flex flex-col gap-3">
               <div className="flex flex-wrap justify-center gap-2">
