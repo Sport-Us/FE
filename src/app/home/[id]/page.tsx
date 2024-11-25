@@ -1,80 +1,130 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { axios } from "@/lib/axios";
 
-const allResults = [
-  {
-    id: "1",
-    category: "태권도",
-    name: "상도역",
-    address: "서울 동작구 상도로 272",
-    time: "12:00~18:00",
-    rating: 4.0,
-    reviews: [
-      {
-        id: 1,
-        username: "햄깅이",
-        rating: 4.0,
-        date: "2023.03.03",
-        comment: "설명도 자세하게 해주시고, 강사님이 되게 재미있으세요!",
-        image: "/sample-image.jpg",
-      },
-    ],
-  },
-  {
-    id: "2",
-    category: "축구",
-    name: "상도역",
-    address: "서울 동작구 상도로 272",
-    time: "10:00~16:00",
-    rating: 4.2,
-    reviews: [
-      {
-        id: 2,
-        username: "길동이",
-        rating: 4.5,
-        date: "2023.05.01",
-        comment: "시설도 좋고 접근성이 뛰어나요!",
-        image: null,
-      },
-    ],
-  },
-];
-
-interface PageProps {
-  params: Promise<{ id: string }>;
+interface Review {
+  reviewId: number;
+  writer: string;
+  content: string;
+  rating: number;
+  date: string;
+  reviewImageUrl: string;
 }
 
-export default async  function DetailPage({ params }: PageProps) {
-  const router = useRouter();
-  const resolvedParams = await params; 
-  const { id } = resolvedParams;
-  const mockData = allResults.find((item) => item.id === id);
+interface PlaceDetail {
+  placeId: number;
+  name: string;
+  address: string;
+  detailInfo: string;
+  rating: number;
+  isBookmarked: boolean;
+  category: string;
+}
 
-  if (!mockData) {
-    return <p>데이터를 찾을 수 없습니다.</p>;
+const categoryMap: Record<string, string> = {
+  ALL: "전체",
+  TAEKWONDO: "태권도",
+  JUDO: "유도",
+  BOXING: "복싱",
+  JUJITSU: "주짓수",
+  KENDO: "검도",
+  HAPKIDO: "합기도",
+  HEALTH: "헬스",
+  YOGA: "요가",
+  PILATES: "필라테스",
+  CROSSFIT: "크로스핏",
+  AEROBICS: "에어로빅",
+  DANCE: "댄스",
+  SOCCER: "축구",
+  BASKETBALL: "농구",
+  VOLLEYBALL: "배구",
+  BASEBALL: "야구",
+  TABLE_TENNIS: "탁구",
+  SQUASH: "스쿼시",
+  BADMINTON: "배드민턴",
+  TENNIS: "테니스",
+  GOLF: "골프",
+  BOWLING: "볼링",
+  BILLIARDS: "당구",
+  CLIMBING: "클라이밍",
+  ROLLER_SKATING: "롤러라인",
+  ICE_SKATING: "빙상",
+  ETC: "기타종목",
+  COMPREHENSIVE: "종합체육시설",
+  BALLET: "무용(발레 등)",
+  JUMPING_ROPE: "줄넘기",
+  PENCING: "펜싱",
+  SWIMMING: "수영",
+  RIDING: "승마",
+  DISABLED: "취약계층",
+  PUBLIC: "공공시설",
+  SCHOOL: "학교",
+  PRIVATE: "민간시설",
+};
+
+export default function DetailPage({ params }: { params: { id: string } }) {
+  const router = useRouter();
+  const { id: placeId } = params;
+  const [placeDetail, setPlaceDetail] = useState<PlaceDetail | null>(null);
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchPlaceDetail = async () => {
+      try {
+        const response = await axios.get("/places/detail", {
+          params: { placeId },
+        });
+
+        const data = response.data.results;
+
+        const transformedCategory =
+          categoryMap[data.placeDetail.category] || "기타";
+
+        setPlaceDetail({ ...data.placeDetail, category: transformedCategory });
+        setReviews(data.recentReviews);
+      } catch (error) {
+        console.error("API 호출 실패:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPlaceDetail();
+  }, [placeId]);
+
+  if (loading) {
+    return <div>로딩 중...</div>;
   }
 
-  const renderSmallStars = (rating: number) => {
+  if (!placeDetail) {
+    return <div>데이터를 불러올 수 없습니다.</div>;
+  }
+
+  const renderStars = (rating: number, size: "small" | "large") => {
     const totalStars = 5;
     const filledStars = Math.round(rating);
     const emptyStars = totalStars - filledStars;
+    const starSize = size === "large" ? 25 : 12;
+    const gap = size === "large" ? 8 : 2;
 
     return (
-      <div className="flex gap-[2px]">
+      <div className={`flex gap-[${gap}px]`}>
         {Array(filledStars)
           .fill(0)
           .map((_, index) => (
             <svg
-              key={`filled-${index}`}
+              key={`filled-${size}-${index}`}
               xmlns="http://www.w3.org/2000/svg"
-              width="12"
-              height="12"
+              width={starSize}
+              height={starSize}
               viewBox="0 0 27 24"
               fill="none"
             >
               <path
-                d="M13.5001 20.0993L19.5896 23.7824C20.7048 24.4574 22.0695 23.4595 21.776 22.1976L20.1619 15.2716L25.5471 10.6054C26.5303 9.75433 26.002 8.14023 24.7107 8.03751L17.6234 7.43589L14.85 0.891426C14.3511 -0.297142 12.649 -0.297142 12.1501 0.891426L9.37675 7.42122L2.28936 8.02284C0.998078 8.12555 0.469825 9.73966 1.45296 10.5907L6.8382 15.257L5.2241 22.1829C4.93062 23.4449 6.29528 24.4427 7.41048 23.7677L13.5001 20.0993Z"
+                d="M13.5 20.1L19.6 23.8C20.7 24.5 22.1 23.5 21.8 22.2L20.2 15.3L25.5 10.6C26.5 9.8 26 8.1 24.7 8L17.6 7.4L14.8 0.9C14.3 -0.3 12.7 -0.3 12.2 0.9L9.4 7.4L2.3 8C1 8.1 0.5 9.8 1.5 10.6L6.8 15.3L5.2 22.2C4.9 23.5 6.3 24.5 7.4 23.8L13.5 20.1Z"
                 fill="#FFD643"
               />
             </svg>
@@ -83,60 +133,15 @@ export default async  function DetailPage({ params }: PageProps) {
           .fill(0)
           .map((_, index) => (
             <svg
-              key={`empty-${index}`}
+              key={`empty-${size}-${index}`}
               xmlns="http://www.w3.org/2000/svg"
-              width="12"
-              height="12"
+              width={starSize}
+              height={starSize}
               viewBox="0 0 27 24"
               fill="none"
             >
               <path
-                d="M13.5001 20.0993L19.5896 23.7824C20.7048 24.4574 22.0695 23.4595 21.776 22.1976L20.1619 15.2716L25.5471 10.6054C26.5303 9.75433 26.002 8.14023 24.7107 8.03751L17.6234 7.43589L14.85 0.891426C14.3511 -0.297142 12.649 -0.297142 12.1501 0.891426L9.37675 7.42122L2.28936 8.02284C0.998078 8.12555 0.469825 9.73966 1.45296 10.5907L6.8382 15.257L5.2241 22.1829C4.93062 23.4449 6.29528 24.4427 7.41048 23.7677L13.5001 20.0993Z"
-                fill="#E8E8E8"
-              />
-            </svg>
-          ))}
-      </div>
-    );
-  };
-
-  const renderLargeStars = (rating: number) => {
-    const totalStars = 5;
-    const filledStars = Math.round(rating);
-    const emptyStars = totalStars - filledStars;
-
-    return (
-      <div className="flex gap-[8px]">
-        {Array(filledStars)
-          .fill(0)
-          .map((_, index) => (
-            <svg
-              key={`filled-large-${index}`}
-              xmlns="http://www.w3.org/2000/svg"
-              width="26"
-              height="25"
-              viewBox="0 0 26 25"
-              fill="none"
-            >
-              <path
-                d="M13.0001 20.7243L19.0896 24.4074C20.2048 25.0824 21.5695 24.0845 21.276 22.8226L19.6619 15.8966L25.0471 11.2304C26.0303 10.3793 25.502 8.76523 24.2107 8.66251L17.1234 8.06089L14.35 1.51643C13.8511 0.327858 12.149 0.327858 11.6501 1.51643L8.87675 8.04622L1.78936 8.64784C0.498078 8.75055 -0.0301749 10.3647 0.952962 11.2157L6.3382 15.882L4.7241 22.8079C4.43062 24.0699 5.79528 25.0677 6.91048 24.3927L13.0001 20.7243Z"
-                fill="#FFD643"
-              />
-            </svg>
-          ))}
-        {Array(emptyStars)
-          .fill(0)
-          .map((_, index) => (
-            <svg
-              key={`empty-large-${index}`}
-              xmlns="http://www.w3.org/2000/svg"
-              width="26"
-              height="25"
-              viewBox="0 0 26 25"
-              fill="none"
-            >
-              <path
-                d="M13.0001 20.7243L19.0896 24.4074C20.2048 25.0824 21.5695 24.0845 21.276 22.8226L19.6619 15.8966L25.0471 11.2304C26.0303 10.3793 25.502 8.76523 24.2107 8.66251L17.1234 8.06089L14.35 1.51643C13.8511 0.327858 12.149 0.327858 11.6501 1.51643L8.87675 8.04622L1.78936 8.64784C0.498078 8.75055 -0.0301749 10.3647 0.952962 11.2157L6.3382 15.882L4.7241 22.8079C4.43062 24.0699 5.79528 25.0677 6.91048 24.3927L13.0001 20.7243Z"
+                d="M13.5 20.1L19.6 23.8C20.7 24.5 22.1 23.5 21.8 22.2L20.2 15.3L25.5 10.6C26.5 9.8 26 8.1 24.7 8L17.6 7.4L14.8 0.9C14.3 -0.3 12.7 -0.3 12.2 0.9L9.4 7.4L2.3 8C1 8.1 0.5 9.8 1.5 10.6L6.8 15.3L5.2 22.2C4.9 23.5 6.3 24.5 7.4 23.8L13.5 20.1Z"
                 fill="#E8E8E8"
               />
             </svg>
@@ -175,11 +180,11 @@ export default async  function DetailPage({ params }: PageProps) {
       <div className="px-4 py-2">
         <div className="inline-flex items-center h-[24px] px-3 bg-[#E5F9EE] rounded-md">
           <span className="text-sm font-medium text-[#1A1A1B]">
-            {mockData.category}
+            {placeDetail.category}
           </span>
         </div>
         <h1 className="mt-[12px] text-[18px] font-bold text-[#1A1A1B]">
-          {mockData.name}
+          {placeDetail.name}
         </h1>
 
         <div className="flex items-center mt-[4px] text-[14px] text-[#505458]">
@@ -203,8 +208,42 @@ export default async  function DetailPage({ params }: PageProps) {
               strokeLinejoin="round"
             />
           </svg>
-          <span className="ml-[4px]">{mockData.address}</span>
+          <span className="ml-[4px]">{placeDetail.address}</span>
         </div>
+        {placeDetail.detailInfo && (
+          <div
+            className="flex flex-col items-start gap-[10px] mt-4 p-[18px_16px] w-[343px] h-auto rounded-[10px]"
+            style={{
+              background: "var(--Gray-100, #F8F9FA)",
+            }}
+          >
+            <div
+              style={{
+                color: "var(--Red, #FF5252)",
+                textAlign: "center",
+                fontFamily: "Inter",
+                fontSize: "14px",
+                fontStyle: "normal",
+                fontWeight: 600,
+                lineHeight: "21px",
+              }}
+            >
+              휴관일 안내
+            </div>
+            <div
+              style={{
+                color: "#000",
+                fontFamily: "Pretendard",
+                fontSize: "14px",
+                fontStyle: "normal",
+                fontWeight: 400,
+                lineHeight: "21px",
+              }}
+            >
+              {placeDetail.detailInfo}
+            </div>
+          </div>
+        )}
       </div>
 
       <div
@@ -217,7 +256,7 @@ export default async  function DetailPage({ params }: PageProps) {
       <section className="px-4 py-4">
         <h2 className="text-[18px] font-bold text-[#1A1A1B]">리뷰</h2>
 
-        {mockData.reviews.length === 0 ? (
+        {reviews.length === 0 ? (
           <div className="flex justify-center items-center h-[150px]">
             <p
               style={{
@@ -245,14 +284,14 @@ export default async  function DetailPage({ params }: PageProps) {
                   lineHeight: "27px",
                 }}
               >
-                {mockData.rating.toFixed(1)}
+                {placeDetail.rating.toFixed(1)}
               </p>
-              {renderLargeStars(mockData.rating)}
+              {renderStars(placeDetail.rating, "large")}
             </div>
 
             <div className="mt-[28px] space-y-6">
-              {mockData.reviews.map((review) => (
-                <div key={review.id}>
+              {reviews.map((review) => (
+                <div key={review.reviewId}>
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-[7px]">
                       <img
@@ -264,10 +303,10 @@ export default async  function DetailPage({ params }: PageProps) {
                       />
                       <div>
                         <p className="text-[12px] text-[#505458] font-semibold">
-                          {review.username}
+                          {review.writer}
                         </p>
                         <div className="mt-[2px]">
-                          {renderSmallStars(review.rating)}
+                          {renderStars(review.rating, "small")}
                         </div>
                       </div>
                     </div>
@@ -276,11 +315,11 @@ export default async  function DetailPage({ params }: PageProps) {
                     </p>
                   </div>
                   <p className="mt-[7px] text-[14px] text-[#000]">
-                    {review.comment}
+                    {review.content}
                   </p>
-                  {review.image && (
+                  {review.reviewImageUrl && (
                     <img
-                      src={review.image}
+                      src={review.reviewImageUrl}
                       alt="리뷰 이미지"
                       className="mt-[7px] w-full rounded-md"
                     />

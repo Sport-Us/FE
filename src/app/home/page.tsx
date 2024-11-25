@@ -116,11 +116,11 @@ export default function Home() {
   const [selectedDistance, setSelectedDistance] = useState<string>("제한 없음");
   const distanceOptions = ["500m", "1km", "2km", "5km", "10km", "제한 없음"];
   const [markers, setMarkers] = useState<any[]>([]);
-  
+
   useEffect(() => {
     clearMarkers();
   }, [selectedTab]);
-  
+
   const clearMarkers = () => {
     markers.forEach((marker) => marker.setMap(null));
     setMarkers([]);
@@ -180,7 +180,7 @@ export default function Home() {
         : "/places/nearby/facilities";
 
     const mappedCategories = categories
-      .map((cat) => categoryMap[cat]) 
+      .map((cat) => categoryMap[cat])
       .join(",");
 
     // console.log("API 요청:", {
@@ -228,60 +228,56 @@ export default function Home() {
   };
 
   const handleCategoryApply = async () => {
-    if (!map || !navigator.geolocation) return;
+    if (!map) return;
 
-    navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        const { latitude, longitude } = position.coords;
+    const center = map.getCenter();
+    const latitude = center.lat();
+    const longitude = center.lng();
+    const radius =
+      selectedDistance === "제한 없음"
+        ? 3000
+        : parseInt(selectedDistance) * 1000;
 
-        const radius =
-          selectedDistance === "제한 없음"
-            ? 3000 // 기본 반경
-            : parseInt(selectedDistance.replace("km", "").replace("m", "")) *
-              1000;
+    const categoriesToSend =
+      selectedTab === "체육 강좌"
+        ? selectedLectureCategories
+        : selectedFacilityCategories;
 
-        const categoriesToSend =
-          selectedTab === "체육 강좌"
-            ? selectedLectureCategories
-            : selectedFacilityCategories;
+    const places = await fetchPlaces(
+      latitude,
+      longitude,
+      radius,
+      categoriesToSend
+    );
 
-        const endpoint =
-          selectedTab === "체육 강좌"
-            ? "/places/nearby/lectures"
-            : "/places/nearby/facilities";
+    clearMarkers();
+    const newMarkers = places.map(
+      (place: {
+        category: string;
+        latitude: any;
+        longitude: any;
+        placeId: number;
+      }) => {
+        const markerImage = `/${place.category.toLowerCase()}.png?v=${Date.now()}`;
+        const marker = new window.naver.maps.Marker({
+          position: new window.naver.maps.LatLng(
+            place.latitude,
+            place.longitude
+          ),
+          map,
+          icon: {
+            url: markerImage,
+            size: new window.naver.maps.Size(48, 48),
+            scaledSize: new window.naver.maps.Size(48, 48),
+          },
+        });
 
-        const places = await fetchPlaces(
-          latitude,
-          longitude,
-          radius,
-          categoriesToSend
-        );
-
-        clearMarkers();
-        const newMarkers = places.map(
-          (place: { category: string; latitude: any; longitude: any }) => {
-            const markerImage = `/${place.category.toLowerCase()}.png?v=${Date.now()}`;
-            return new window.naver.maps.Marker({
-              position: new window.naver.maps.LatLng(
-                place.latitude,
-                place.longitude
-              ),
-              map,
-              icon: {
-                url: markerImage,
-                size: new window.naver.maps.Size(48, 48),
-                scaledSize: new window.naver.maps.Size(48, 48),
-              },
-            });
-          }
-        );
-
-        setMarkers(newMarkers);
-      },
-      (error) => {
-        console.error("위치 정보 가져오기 실패:", error);
+        marker.addListener("click", () => handleMarkerClick(place.placeId));
+        return marker;
       }
     );
+
+    setMarkers(newMarkers);
   };
 
   const allResults = [
@@ -352,6 +348,10 @@ export default function Home() {
         position: new window.naver.maps.LatLng(latitude, longitude),
         map: newMap,
       });
+
+      window.naver.maps.Event.addListener(newMap, "bounds_changed", () => {
+        handleCategoryApply();
+      });
     };
 
     const handleLocationError = (error: GeolocationPositionError) => {
@@ -407,6 +407,10 @@ export default function Home() {
 
   const handleResultClick = (id: string) => {
     router.push(`/home/${id}`);
+  };
+
+  const handleMarkerClick = (placeId: number) => {
+    router.push(`/home/${placeId}`);
   };
 
   return (
