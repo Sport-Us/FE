@@ -70,6 +70,7 @@ export default function DetailPage({ params }: { params: { id: string } }) {
   const [placeDetail, setPlaceDetail] = useState<PlaceDetail | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isBookmarked, setIsBookmarked] = useState(false); // 북마크 상태 추가
 
   useEffect(() => {
     const fetchPlaceDetail = async () => {
@@ -94,6 +95,18 @@ export default function DetailPage({ params }: { params: { id: string } }) {
 
     fetchPlaceDetail();
   }, [placeId]);
+
+  const handleBookmarkClick = async () => {
+    try {
+      const response = await axios.get(`/bookmarks/${placeId}`);
+
+      if (response.data.isSuccess) {
+        setIsBookmarked((prev) => !prev);
+      }
+    } catch (error) {
+      console.error("북마크 요청 실패:", error);
+    }
+  };
 
   if (loading) {
     return <div>로딩 중...</div>;
@@ -218,6 +231,7 @@ export default function DetailPage({ params }: { params: { id: string } }) {
             }}
           >
             <div
+              className="w-full text-center"
               style={{
                 color: "var(--Red, #FF5252)",
                 textAlign: "center",
@@ -333,22 +347,37 @@ export default function DetailPage({ params }: { params: { id: string } }) {
 
       <div className="fixed bottom-0 left-0 w-full bg-white shadow-lg py-[25px] px-[16px] flex justify-center items-center">
         <div className="flex items-center gap-[12px]">
-          <button>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-            >
-              <path
-                d="M5 7.8C5 6.11984 5 5.27976 5.32698 4.63803C5.6146 4.07354 6.07354 3.6146 6.63803 3.32698C7.27976 3 8.11984 3 9.8 3H14.2C15.8802 3 16.7202 3 17.362 3.32698C17.9265 3.6146 18.3854 4.07354 18.673 4.63803C19 5.27976 19 6.11984 19 7.8V21L12 17L5 21V7.8Z"
-                stroke="#1A1A1B"
-                strokeWidth="1.8"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
+          <button onClick={handleBookmarkClick}>
+            {isBookmarked ? (
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="30"
+                height="30"
+                viewBox="0 0 24 24"
+                fill="none"
+              >
+                <path
+                  d="M5 7.8C5 6.11984 5 5.27976 5.32698 4.63803C5.6146 4.07354 6.07354 3.6146 6.63803 3.32698C7.27976 3 8.11984 3 9.8 3H14.2C15.8802 3 16.7202 3 17.362 3.32698C17.9265 3.6146 18.3854 4.07354 18.673 4.63803C19 5.27976 19 6.11984 19 7.8V21L12 17L5 21V7.8Z"
+                  fill="#000"
+                />
+              </svg>
+            ) : (
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="30"
+                height="30"
+                viewBox="0 0 24 24"
+                fill="none"
+              >
+                <path
+                  d="M5 7.8C5 6.11984 5 5.27976 5.32698 4.63803C5.6146 4.07354 6.07354 3.6146 6.63803 3.32698C7.27976 3 8.11984 3 9.8 3H14.2C15.8802 3 16.7202 3 17.362 3.32698C17.9265 3.6146 18.3854 4.07354 18.673 4.63803C19 5.27976 19 6.11984 19 7.8V21L12 17L5 21V7.8Z"
+                  stroke="#1A1A1B"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            )}
           </button>
           <button
             onClick={() => router.push("/review")}
