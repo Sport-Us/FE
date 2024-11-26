@@ -111,7 +111,7 @@ export default function MyPage() {
 
       <div className="flex flex-col w-full max-w-md mt-12 space-y-2">
         {[
-          { name: "북마크", onClick: () => alert("북마크 페이지로 이동") },
+          { name: "북마크", onClick: () => router.push("/mypage/mybookmark") },
           { name: "내 리뷰", onClick: () => router.push("/mypage/myreview") },
           {
             name: "개인정보처리방침",
