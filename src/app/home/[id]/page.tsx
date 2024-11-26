@@ -380,7 +380,7 @@ export default function DetailPage({ params }: { params: { id: string } }) {
             )}
           </button>
           <button
-            onClick={() => router.push("/review")}
+            onClick={() => router.push(`/review?placeId=${placeId}`)}
             className="flex items-center justify-center w-[281px] h-[43px] rounded-[8px] bg-[#0187BA] text-white font-bold text-[12px]"
           >
             리뷰 작성하기

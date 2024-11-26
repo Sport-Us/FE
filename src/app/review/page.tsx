@@ -1,18 +1,25 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { axios } from "@/lib/axios";
 
 export default function ReviewPage() {
   const router = useRouter();
-  const [rating, setRating] = useState(0); 
-  const [review, setReview] = useState(""); 
-  const [error, setError] = useState(""); 
-  const [isTouched, setIsTouched] = useState(false); 
+  const searchParams = useSearchParams();
+  const placeId = searchParams.get("placeId");
+
+  const [rating, setRating] = useState(0);
+  const [review, setReview] = useState("");
+  const [file, setFile] = useState<File | null>(null);
+  const [preview, setPreview] = useState<string | null>(null); // 이미지 미리보기 상태
+
+  const [error, setError] = useState("");
+  const [isTouched, setIsTouched] = useState(false);
 
   const handleRatingClick = (value: number) => {
     setRating(value);
-    setError(""); 
+    setError("");
   };
 
   const handleReviewChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -36,6 +43,51 @@ export default function ReviewPage() {
       setError("500자를 초과하였습니다.");
     } else {
       setError("");
+    }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = e.target.files?.[0];
+    if (selectedFile) {
+      setFile(selectedFile);
+      setPreview(URL.createObjectURL(selectedFile));
+    }
+  };
+
+  const handleSubmit = async () => {
+    if (!rating || !review.trim()) {
+      setError("별점과 리뷰를 작성해야 합니다.");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append(
+      "reviewUploadRequest",
+      JSON.stringify({
+        placeId: Number(placeId),
+        rating,
+        content: review,
+      })
+    );
+
+    if (file) {
+      formData.append("file", file);
+    }
+
+    try {
+      const response = await axios.post("/reviews", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      if (response.status === 200 || response.status === 201) {
+        alert("리뷰가 성공적으로 등록되었습니다.");
+        router.push("/"); 
+      }
+    } catch (error) {
+      console.error("리뷰 등록 중 오류가 발생했습니다:", error);
+      alert("리뷰 등록에 실패했습니다. 다시 시도해 주세요.");
     }
   };
 
@@ -182,7 +234,7 @@ export default function ReviewPage() {
             }}
           >
             <textarea
-              className={`w-full h-full bg-transparent resize-none ${
+              className={`w-full h-full bg-transparent resize-none focus:outline-none focus:ring-0 ${
                 error && isTouched ? "border border-red-500" : ""
               }`}
               placeholder="장소에 대한 후기를 작성해 주세요."
@@ -239,22 +291,38 @@ export default function ReviewPage() {
           >
             사진 업로드는 한 장만 가능합니다.
           </p>
-          <div className="mt-2 flex justify-center items-center w-[80px] h-[80px] p-6 border rounded-md bg-gray-100">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="28"
-              height="28"
-              viewBox="0 0 28 28"
-              fill="none"
-            >
-              <path
-                d="M14.5833 3.49992H9.1C7.13982 3.49992 6.15972 3.49992 5.41103 3.8814C4.75247 4.21695 4.21703 4.75238 3.88148 5.41095C3.5 6.15964 3.5 7.13973 3.5 9.09992V18.8999C3.5 20.8601 3.5 21.8402 3.88148 22.5889C4.21703 23.2475 4.75247 23.7829 5.41103 24.1184C6.15972 24.4999 7.13982 24.4999 9.1 24.4999H19.8333C20.9183 24.4999 21.4608 24.4999 21.9059 24.3807C23.1137 24.057 24.0571 23.1136 24.3807 21.9058C24.5 21.4607 24.5 20.9182 24.5 19.8333M22.1667 9.33325V2.33325M18.6667 5.83325H25.6667M12.25 9.91659C12.25 11.2052 11.2053 12.2499 9.91667 12.2499C8.628 12.2499 7.58333 11.2052 7.58333 9.91659C7.58333 8.62792 8.628 7.58325 9.91667 7.58325C11.2053 7.58325 12.25 8.62792 12.25 9.91659ZM17.4884 13.9044L7.61967 22.876C7.06459 23.3806 6.78705 23.6329 6.7625 23.8515C6.74122 24.0409 6.81386 24.2288 6.95705 24.3547C7.12224 24.4999 7.49733 24.4999 8.2475 24.4999H19.1986C20.8777 24.4999 21.7172 24.4999 22.3766 24.2178C23.2043 23.8637 23.8638 23.2043 24.2179 22.3765C24.5 21.7171 24.5 20.8776 24.5 19.1986C24.5 18.6336 24.5 18.3512 24.4382 18.0881C24.3606 17.7575 24.2118 17.4478 24.0021 17.1807C23.8353 16.9682 23.6147 16.7917 23.1736 16.4388L19.9101 13.828C19.4686 13.4748 19.2479 13.2982 19.0048 13.2359C18.7905 13.1809 18.565 13.1881 18.3546 13.2564C18.1159 13.3339 17.9067 13.5241 17.4884 13.9044Z"
-                stroke="#8E9398"
-                stroke-width="1.5"
-                stroke-linecap="round"
-                stroke-linejoin="round"
+          <div className="mt-2 flex justify-center items-center w-[80px] h-[80px] p-1 border rounded-md bg-gray-100">
+            <label className="w-full h-full flex justify-center items-center cursor-pointer">
+              {preview ? (
+                <img
+                  src={preview}
+                  alt="이미지 미리보기"
+                  className="w-full h-full object-cover rounded-md"
+                />
+              ) : (
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="28"
+                  height="28"
+                  viewBox="0 0 28 28"
+                  fill="none"
+                >
+                  <path
+                    d="M14.5833 3.49992H9.1C7.13982 3.49992 6.15972 3.49992 5.41103 3.8814C4.75247 4.21695 4.21703 4.75238 3.88148 5.41095C3.5 6.15964 3.5 7.13973 3.5 9.09992V18.8999C3.5 20.8601 3.5 21.8402 3.88148 22.5889C4.21703 23.2475 4.75247 23.7829 5.41103 24.1184C6.15972 24.4999 7.13982 24.4999 9.1 24.4999H19.8333C20.9183 24.4999 21.4608 24.4999 21.9059 24.3807C23.1137 24.057 24.0571 23.1136 24.3807 21.9058C24.5 21.4607 24.5 20.9182 24.5 19.8333M22.1667 9.33325V2.33325M18.6667 5.83325H25.6667M12.25 9.91659C12.25 11.2052 11.2053 12.2499 9.91667 12.2499C8.628 12.2499 7.58333 11.2052 7.58333 9.91659C7.58333 8.62792 8.628 7.58325 9.91667 7.58325C11.2053 7.58325 12.25 8.62792 12.25 9.91659ZM17.4884 13.9044L7.61967 22.876C7.06459 23.3806 6.78705 23.6329 6.7625 23.8515C6.74122 24.0409 6.81386 24.2288 6.95705 24.3547C7.12224 24.4999 7.49733 24.4999 8.2475 24.4999H19.1986C20.8777 24.4999 21.7172 24.4999 22.3766 24.2178C23.2043 23.8637 23.8638 23.2043 24.2179 22.3765C24.5 21.7171 24.5 20.8776 24.5 19.1986C24.5 18.6336 24.5 18.3512 24.4382 18.0881C24.3606 17.7575 24.2118 17.4478 24.0021 17.1807C23.8353 16.9682 23.6147 16.7917 23.1736 16.4388L19.9101 13.828C19.4686 13.4748 19.2479 13.2982 19.0048 13.2359C18.7905 13.1809 18.565 13.1881 18.3546 13.2564C18.1159 13.3339 17.9067 13.5241 17.4884 13.9044Z"
+                    stroke="#8E9398"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              )}
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange}
+                className="hidden"
               />
-            </svg>
+            </label>
           </div>
         </div>
         <button
@@ -263,6 +331,7 @@ export default function ReviewPage() {
               ? "bg-[#0187BA] text-[14px] font-bold text-white"
               : "bg-[#F8F9FA] text-[14px] font-bold text-[#8E9398]"
           }`}
+          onClick={handleSubmit}
           disabled={!isButtonActive}
         >
           등록하기
