@@ -110,21 +110,29 @@ export default function MyPage() {
       </div>
 
       <div className="flex flex-col w-full max-w-md mt-12 space-y-2">
-        {["북마크", "내 리뷰", "개인정보처리방침", "서비스 이용약관", "로그아웃"].map(
-          (item) => (
-            <div
-              key={item}
-              className="flex items-center h-[48px] pl-[16px] gap-2"
+        {[
+          { name: "북마크", onClick: () => alert("북마크 페이지로 이동") },
+          { name: "내 리뷰", onClick: () => router.push("/mypage/myreview") },
+          {
+            name: "개인정보처리방침",
+            onClick: () => alert("개인정보처리방침"),
+          },
+          { name: "서비스 이용약관", onClick: () => alert("이용약관") },
+          { name: "로그아웃", onClick: () => alert("로그아웃") },
+        ].map((item) => (
+          <div
+            key={item.name}
+            onClick={item.onClick}
+            className="flex items-center h-[48px] pl-[16px] gap-2"
+          >
+            <span
+              className="text-black font-semibold text-[14px] leading-[21px]"
+              style={{ fontFamily: "Inter" }}
             >
-              <span
-                className="text-black font-semibold text-[14px] leading-[21px]"
-                style={{ fontFamily: "Inter" }}
-              >
-                {item}
-              </span>
-            </div>
-          )
-        )}
+              {item.name}
+            </span>
+          </div>
+        ))}
       </div>
 
       <div className="flex justify-between w-full max-w-md px-4 mt-[15px] text-gray-400">
