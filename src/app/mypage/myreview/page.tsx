@@ -16,7 +16,7 @@ interface Review {
 export default function MyReviews() {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [hasNext, setHasNext] = useState(false);
-  const [lastReviewId, setLastReviewId] = useState(0); // 초기 lastReviewId는 0
+  const [lastReviewId, setLastReviewId] = useState(0);
   const [loading, setLoading] = useState(true);
 
   const fetchReviews = async (lastId: number) => {
@@ -27,6 +27,12 @@ export default function MyReviews() {
       if (response.data.isSuccess) {
         const { reviewSimpleResponseList, hasNext } = response.data.results;
         setReviews((prev) => [...prev, ...reviewSimpleResponseList]);
+        if (reviewSimpleResponseList.length > 0) {
+          setLastReviewId(
+            reviewSimpleResponseList[reviewSimpleResponseList.length - 1]
+              .reviewId
+          );
+        }
         setHasNext(hasNext);
       } else {
         alert("리뷰를 불러오는 데 실패했습니다.");
@@ -41,11 +47,14 @@ export default function MyReviews() {
 
   const handleDeleteReview = async (reviewId: number) => {
     if (!confirm("정말 삭제하시겠습니까?")) return;
+
     try {
-      const response = await axios.delete(`/users/review/${reviewId}`);
+      const response = await axios.delete(`/reviews/${reviewId}`);
       if (response.data.isSuccess) {
         alert("리뷰가 삭제되었습니다.");
-        setReviews((prev) => prev.filter((review) => review.reviewId !== reviewId));
+        setReviews((prev) =>
+          prev.filter((review) => review.reviewId !== reviewId)
+        );
       } else {
         alert("리뷰 삭제에 실패했습니다.");
       }
@@ -56,7 +65,7 @@ export default function MyReviews() {
   };
 
   useEffect(() => {
-    fetchReviews(0); 
+    fetchReviews(0);
   }, []);
 
   const renderStars = (rating: number) => {
@@ -121,7 +130,7 @@ export default function MyReviews() {
                       lineHeight: "24px",
                     }}
                   >
-                    장소명 
+                    장소명
                   </p>
 
                   <div className="mt-[4px]">{renderStars(review.rating)}</div>

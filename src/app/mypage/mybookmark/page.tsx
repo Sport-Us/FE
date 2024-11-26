@@ -15,6 +15,14 @@ interface Bookmark {
   openHours: string;
 }
 
+const facilityCategories = [
+  { name: "전체", bgColor: "#F3F5F7" },
+  { name: "취약계층", bgColor: "#E5F9EE" },
+  { name: "공공시설", bgColor: "#E0F8F7" },
+  { name: "학교", bgColor: "#E0F4FD" },
+  { name: "민간시설", bgColor: "#E8EAF6" },
+];
+
 export default function BookmarkPage() {
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
   const [hasNext, setHasNext] = useState(false);
@@ -39,6 +47,11 @@ export default function BookmarkPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const getCategoryBgColor = (category: string) => {
+    const match = facilityCategories.find((item) => item.name === category);
+    return match ? match.bgColor : "#F3F5F7"; 
   };
 
   useEffect(() => {
@@ -82,7 +95,7 @@ export default function BookmarkPage() {
               <div
                 className="inline-flex items-center justify-center h-[24px] px-[12px] rounded-[2px]"
                 style={{
-                  background: "var(--Badge-green, #E5F9EE)",
+                  background: getCategoryBgColor(bookmark.category),
                 }}
               >
                 <p
