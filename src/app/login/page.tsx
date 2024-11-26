@@ -17,7 +17,8 @@ export default function Login() {
 
   const handleLoginClick = async () => {
     window.localStorage.removeItem("accessToken");
-  
+    window.localStorage.removeItem("refreshToken");
+
     try {
       const response = await axios.post(
         "/auth/sign-in",
@@ -35,6 +36,8 @@ export default function Login() {
       if (response.data?.isSuccess) {
         const results = response.data.results || {}; 
         const accessToken = results.accessToken || ""; 
+        const refreshToken = results.refreshToken || "";
+
         const isOnboarded = results.isOnboarded || false; 
   
         if (accessToken) {
@@ -43,7 +46,11 @@ export default function Login() {
         } else {
           console.warn("AccessToken이 응답에 없습니다.");
         }
-  
+        if (refreshToken) {
+          window.localStorage.setItem("refreshToken", refreshToken);
+        } else {
+          console.warn("RefreshToken이 응답에 없습니다.");
+        }
         if (isOnboarded) {
           router.push("/home"); 
         } else {

@@ -7,7 +7,7 @@ export const axios = Axios.create({
 
 axios.interceptors.request.use(
   (config) => {
-    const token = window?.localStorage.getItem("accessToken");
+    const token = window.localStorage.getItem("accessToken");
 
     config.headers = config.headers || {};
 
@@ -37,11 +37,6 @@ const processQueue = (error: any, token: string | null) => {
   failedQueue = [];
 };
 
-const getCookie = (name: string): string | null => {
-  const matches = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`));
-  return matches ? decodeURIComponent(matches[1]) : null;
-};
-
 axios.interceptors.response.use(
   (response) => response,
   async (error) => {
@@ -63,29 +58,45 @@ axios.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        const refreshToken = getCookie("REFRESH_TOKEN");
+        const refreshToken = window.localStorage.getItem("refreshToken");
         if (!refreshToken) {
-          throw new Error("리프레시 토큰이 쿠키에 없습니다.");
+          throw new Error("리프레시 토큰이 로컬스토리지에 없습니다.");
         }
 
         const { data } = await axios.get("/auth/reissue", {
-          params: { refreshToken },
-          withCredentials: true,
+          params: { REFRESH_TOKEN: refreshToken },
+          headers: {
+            "Content-Type": "application/json",
+          },
         });
 
-        const newAccessToken = data.accessToken;
-        window.localStorage.setItem("accessToken", newAccessToken);
+        if (data?.isSuccess && data.results) {
+          const newAccessToken = data.results.accessToken;
+          const newRefreshToken = data.results.refreshToken;
 
-        processQueue(null, newAccessToken);
+          if (newAccessToken) {
+            window.localStorage.setItem("accessToken", newAccessToken);
+          }
 
-        isRefreshing = false;
+          if (newRefreshToken) {
+            window.localStorage.setItem("refreshToken", newRefreshToken);
+          }
 
-        originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
-        return axios(originalRequest);
+          processQueue(null, newAccessToken);
+
+          isRefreshing = false;
+
+          originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+          return axios(originalRequest);
+        } else {
+          throw new Error("새로운 토큰을 받아오는 데 실패했습니다.");
+        }
       } catch (refreshError) {
         processQueue(refreshError, null);
         isRefreshing = false;
+
         window.localStorage.removeItem("accessToken");
+        window.localStorage.removeItem("refreshToken");
         window.location.href = "/login";
         return Promise.reject(refreshError);
       }

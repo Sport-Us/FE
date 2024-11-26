@@ -17,30 +17,33 @@ export default function OnboardingPage() {
     PURPOSE: [] as string[],
   });
 
-  // useEffect(() => {
-  //   const handleTokenExtraction = () => {
-  //     if (typeof window === "undefined") {
-  //       console.error("브라우저 환경이 아닙니다.");
-  //       return;
-  //     }
+  useEffect(() => {
+    const handleTokenExtraction = () => {
+      if (typeof window === "undefined") {
+        console.error("브라우저 환경이 아닙니다.");
+        return;
+      }
 
-  //     const urlParams = new URLSearchParams(window.location.search);
-  //     const accessToken = urlParams.get("accessToken");
+      const urlParams = new URLSearchParams(window.location.search);
+      const accessToken = urlParams.get("accessToken");
+      const refreshToken = urlParams.get("refreshToken");
 
-  //     if (accessToken) {
-  //       try {
-  //         localStorage.setItem("accessToken", accessToken);
-  //       } catch (error) {
-  //         console.error("로컬 스토리지 저장 중 오류:", error);
-  //       }
-  //     } else {
-  //       console.error("accessToken이 없습니다.");
-  //       router.push("/login");
-  //     }
-  //   };
+      if (accessToken && refreshToken) {
+        try {
+          localStorage.setItem("accessToken", accessToken);
+          localStorage.setItem("refreshToken", refreshToken);
 
-  //   handleTokenExtraction();
-  // }, [router]);
+        } catch (error) {
+          console.error("로컬 스토리지 저장 중 오류:", error);
+        }
+      } else {
+        console.error("accessToken이 없습니다.");
+        router.push("/login");
+      }
+    };
+
+    handleTokenExtraction();
+  }, [router]);
 
   const handleNext = (
     type: "INTEREST" | "PREFERENCE" | "PURPOSE",

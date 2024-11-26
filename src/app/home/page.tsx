@@ -16,13 +16,15 @@ export default function Home() {
       }
 
       const urlParams = new URLSearchParams(window.location.search);
-      const accessTokenFromUrl = urlParams.get("accessToken");
-
-      if (accessTokenFromUrl) {
+      const accessToken = urlParams.get("accessToken");
+      const refreshToken = urlParams.get("refreshToken");
+      
+      if (accessToken && refreshToken) {
         // 소셜 로그인일 경우
         try {
-          localStorage.setItem("accessToken", accessTokenFromUrl);
-          // console.log("소셜 로그인 토큰 저장 성공:", accessTokenFromUrl);
+          localStorage.setItem("accessToken", accessToken);
+          localStorage.setItem("refreshToken", refreshToken);
+
         } catch (error) {
           console.error("로컬 스토리지 저장 중 오류:", error);
         }
