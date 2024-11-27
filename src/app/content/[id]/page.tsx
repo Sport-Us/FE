@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { axios } from "@/lib/axios";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
-
+import Loading from "@/app/loading";
 interface CardImage {
   cardImageUrl: string;
 }
@@ -51,11 +51,7 @@ export default function ContentDetail() {
   }, [contentId]);
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <p>로딩 중...</p>
-      </div>
-    );
+    return <Loading />;
   }
 
   return (

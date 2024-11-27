@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { axios } from "@/lib/axios";
+import Loading from "@/app/loading";
 
 interface Review {
   reviewId: number;
@@ -70,7 +71,7 @@ export default function DetailPage({ params }: { params: { id: string } }) {
   const [placeDetail, setPlaceDetail] = useState<PlaceDetail | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isBookmarked, setIsBookmarked] = useState(false); // 북마크 상태 추가
+  const [isBookmarked, setIsBookmarked] = useState(false);
 
   useEffect(() => {
     const fetchPlaceDetail = async () => {
@@ -109,7 +110,7 @@ export default function DetailPage({ params }: { params: { id: string } }) {
   };
 
   if (loading) {
-    return <div>로딩 중...</div>;
+    return <Loading />;
   }
 
   if (!placeDetail) {

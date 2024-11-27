@@ -1,9 +1,12 @@
-import type { NextConfig } from "next";
+import type { NextConfig } from 'next';
 
-const nextConfig: NextConfig = {
+const nextConfig: NextConfig & { experimental: { appDir: boolean } } = {
   reactStrictMode: true,
+  experimental: {
+    appDir: true,
+  },
   images: {
-    domains: ['ssl.pstatic.net'], 
+    domains: ['ssl.pstatic.net'],
   },
 };
 

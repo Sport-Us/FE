@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Header from "@/app/components/Header";
 import { axios } from "@/lib/axios";
+import Loading from "@/app/loading";
 
 interface Bookmark {
   bookmarkId: number;
@@ -59,7 +60,7 @@ export default function BookmarkPage() {
   }, []);
 
   if (loading) {
-    return <div>로딩 중...</div>;
+    return <Loading />;
   }
 
   return (

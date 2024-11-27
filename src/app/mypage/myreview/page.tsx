@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Header from "@/app/components/Header";
 import { axios } from "@/lib/axios";
+import Loading from "@/app/loading";
 
 interface Review {
   reviewId: number;
@@ -92,7 +93,7 @@ export default function MyReviews() {
   };
 
   if (loading) {
-    return <div>로딩 중...</div>;
+    return <Loading />;
   }
 
   return (

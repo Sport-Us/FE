@@ -5,6 +5,7 @@ import Link from "next/link";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import { axios } from "../../lib/axios";
+import Loading from "../loading";
 
 interface ContentItem {
   id: number;
@@ -67,11 +68,7 @@ export default function Content() {
   }, []);
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <p>로딩 중...</p>
-      </div>
-    );
+    return <Loading />;
   }
 
   return (
