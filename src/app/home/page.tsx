@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { axios } from "@/lib/axios";
 import Footer from "../components/Footer";
+import { useRef } from "react";
 
 export default function Home() {
   const router = useRouter();
@@ -18,13 +19,12 @@ export default function Home() {
       const urlParams = new URLSearchParams(window.location.search);
       const accessToken = urlParams.get("accessToken");
       const refreshToken = urlParams.get("refreshToken");
-      
+
       if (accessToken && refreshToken) {
         // 소셜 로그인일 경우
         try {
           localStorage.setItem("accessToken", accessToken);
           localStorage.setItem("refreshToken", refreshToken);
-
         } catch (error) {
           console.error("로컬 스토리지 저장 중 오류:", error);
         }
@@ -103,6 +103,11 @@ export default function Home() {
   const [map, setMap] = useState<any>(null);
   const [searchActive, setSearchActive] = useState(false);
   const [searchInput, setSearchInput] = useState("");
+  const [currentPage, setCurrentPage] = useState(0);
+  const [hasNextPage, setHasNextPage] = useState(true);
+
+  const [searchLoading, setSearchLoading] = useState(false);
+  const mapRef = useRef<any>(null);
   const [recentSearches, setRecentSearches] = useState([
     "서울",
     "상도동",
@@ -285,54 +290,107 @@ export default function Home() {
     setMarkers(newMarkers);
   };
 
-  const allResults = [
-    {
-      id: "1",
-      category: "태권도",
-      name: "상도역",
-      rating: 4.0,
-      reviews: 11,
-      distance: "65m",
-      address: "서울 동작구 상도로 272",
-    },
-    {
-      id: "2",
-      category: "축구",
-      name: "상도역",
-      rating: 4.0,
-      reviews: 11,
-      distance: "65m",
-      address: "서울 동작구 상도로 272",
-    },
-    {
-      id: "3",
-      category: "유도",
-      name: "상도역",
-      rating: 4.0,
-      reviews: 11,
-      distance: "65m",
-      address: "서울 동작구 상도로 272",
-    },
-    {
-      id: "4",
-      category: "핸드볼",
-      name: "상도역",
-      rating: 4.0,
-      reviews: 11,
-      distance: "65m",
-      address: "서울 동작구 상도로 272",
-      time: "12:00~18:00",
-    },
-    {
-      id: "5",
-      category: "농구",
-      name: "상도역",
-      rating: 4.0,
-      reviews: 11,
-      distance: "65m",
-      address: "서울 동작구 상도로 272",
-    },
-  ];
+  const getKoreanCategory = (englishCategory: string): string => {
+    const entry = Object.entries(categoryMap).find(
+      ([, value]) => value === englishCategory
+    );
+    return entry ? entry[0] : "알 수 없음"; 
+  };
+
+  //검색
+  const defaultMaxDistance = 3000;
+  const currentCategory =
+    selectedTab === "체육 강좌"
+      ? selectedLectureCategories
+      : selectedFacilityCategories;
+  const currentEndpoint =
+    selectedTab === "체육 강좌"
+      ? "/places/search/lectures"
+      : "/places/search/facilities";
+
+  const fetchSearchResults = async (reset: boolean = false) => {
+    if (!map || searchLoading) return;
+
+    const center = mapRef.current?.getCenter();
+    const longitude = center?.lng() || 127.027619;
+    const latitude = center?.lat() || 37.497942;
+
+    const params = {
+      longitude,
+      latitude,
+      maxDistance:
+        selectedDistance === "제한 없음"
+          ? defaultMaxDistance
+          : parseInt(selectedDistance) * 1000,
+      category: currentCategory.includes("전체")
+        ? "ALL"
+        : currentCategory.map((cat) => categoryMap[cat]).join(","),
+      sortType: selectedFilter === "별점순" ? "STAR_DESC" : "DISTANCE_ASC",
+      keyword: searchInput,
+      page: reset ? 0 : currentPage,
+    };
+
+    setSearchLoading(true);
+
+    try {
+      const response = await axios.get(currentEndpoint, { params });
+      if (response.data.isSuccess) {
+        const { placeList, hasNext, page } = response.data.results;
+
+        setSearchResults(reset ? placeList : [...searchResults, ...placeList]);
+        setHasNextPage(hasNext);
+        setCurrentPage(page + 1);
+      } else {
+        console.error("API 호출 실패:", response.data.message);
+      }
+    } catch (error) {
+      console.error("API 호출 에러:", error);
+    } finally {
+      setSearchLoading(false);
+    }
+  };
+
+  const debounce = (func: Function, delay: number) => {
+    let timer: NodeJS.Timeout;
+    return (...args: any[]) => {
+      clearTimeout(timer);
+      timer = setTimeout(() => func(...args), delay);
+    };
+  };
+  
+
+// 추후 수정
+  useEffect(() => {
+    setSearchInput(""); 
+    setSearchResults([]); 
+    setCurrentPage(0);
+    setHasNextPage(true); 
+  
+    fetchSearchResults(true);
+  }, [
+    selectedTab, 
+    selectedLectureCategories,
+    selectedFacilityCategories,
+    selectedFilter,
+    selectedDistance,
+  ]);
+  
+
+  const handleTabChange = (newTab: "체육 강좌" | "체육 시설") => {
+    if (newTab !== selectedTab) {
+      setSelectedTab(newTab);
+      setSearchInput(""); 
+      setSearchResults([]); 
+      setCurrentPage(0); 
+      setHasNextPage(true); 
+    }
+  };
+  
+
+  const loadMoreResults = () => {
+    if (searchLoading || !hasNextPage) return;
+    fetchSearchResults(false);
+  };
 
   useEffect(() => {
     const initMap = (latitude: number, longitude: number) => {
@@ -400,13 +458,15 @@ export default function Home() {
     setSearchInput(query);
 
     if (query) {
-      const filteredResults = allResults.filter(
-        (result) =>
-          result.name.includes(query) || result.category.includes(query)
-      );
-      setSearchResults(filteredResults);
+      // const filteredResults = allResults.filter(
+      //   (result) =>
+      //     result.name.includes(query) || result.category.includes(query)
+      // );
+      // setSearchResults(filteredResults);
+      fetchSearchResults(true);
     } else {
       setSearchResults([]);
+      setHasNextPage(false); 
     }
   };
 
@@ -623,38 +683,39 @@ export default function Home() {
                 onClick={() => setFilterModalVisible(false)}
               ></div>
 
-{filterModalVisible && (
-  <>
-    <div
-      className="fixed inset-0 bg-[rgba(0,0,0,0.4)] z-40"
-      onClick={() => setFilterModalVisible(false)}
-    ></div>
-    <div className="fixed bottom-0 left-1/2 transform -translate-x-1/2 w-[375px] h-auto py-[20px] flex flex-col items-start gap-[10px] rounded-t-[20px] bg-[#FFF] z-50">
-      <div className="w-full text-[16px] font-semibold text-center leading-[24px]">
-        정렬 필터
-      </div>
-      <div className="flex flex-col gap-[10px] w-full mt-[12px] max-h-[120px] overflow-y-scroll">
-        {filterOptions.map((filter, index) => (
-          <button
-            key={index}
-            onClick={() => {
-              setSelectedFilter(filter);
-              setFilterModalVisible(false);
-            }}
-            className={`w-full py-[18px] px-[16px] flex items-center justify-start rounded-md ${
-              selectedFilter === filter ? "bg-[#F1F1F1]" : "bg-white"
-            } text-[14px] font-${
-              selectedFilter === filter ? "semibold" : "normal"
-            } text-[var(--Black,#1A1A1B)]`}
-          >
-            {filter}
-          </button>
-        ))}
-      </div>
-    </div>
-  </>
-)}
-
+              {filterModalVisible && (
+                <>
+                  <div
+                    className="fixed inset-0 bg-[rgba(0,0,0,0.4)] z-40"
+                    onClick={() => setFilterModalVisible(false)}
+                  ></div>
+                  <div className="fixed bottom-0 left-1/2 transform -translate-x-1/2 w-[375px] h-auto py-[20px] flex flex-col items-start gap-[10px] rounded-t-[20px] bg-[#FFF] z-50">
+                    <div className="w-full text-[16px] font-semibold text-center leading-[24px]">
+                      정렬 필터
+                    </div>
+                    <div className="flex flex-col gap-[10px] w-full mt-[12px] max-h-[120px] overflow-y-scroll">
+                      {filterOptions.map((filter, index) => (
+                        <button
+                          key={index}
+                          onClick={() => {
+                            setSelectedFilter(filter);
+                            setFilterModalVisible(false);
+                          }}
+                          className={`w-full py-[18px] px-[16px] flex items-center justify-start rounded-md ${
+                            selectedFilter === filter
+                              ? "bg-[#F1F1F1]"
+                              : "bg-white"
+                          } text-[14px] font-${
+                            selectedFilter === filter ? "semibold" : "normal"
+                          } text-[var(--Black,#1A1A1B)]`}
+                        >
+                          {filter}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              )}
             </>
           )}
 
@@ -724,7 +785,7 @@ export default function Home() {
                       style={{ width: "fit-content" }}
                     >
                       <span className="text-[12px] font-medium text-[var(--Black,#1A1A1B)]">
-                        {result.category}
+                        {getKoreanCategory(result.category)}
                       </span>
                     </div>
 
@@ -749,11 +810,11 @@ export default function Home() {
                         {result.rating}
                       </span>
                       <span className="text-[12px] text-[#8E9398]">
-                        ({result.reviews})
+                        ({result.reviewCount})
                       </span>
                     </div>
                     <span className="text-[var(--Gray-500,#505458)] font-[Inter] text-[12px] font-semibold leading-[18px]">
-                      {result.distance} · {result.address}
+                      {result.distance}m · {result.address}
                     </span>
                   </div>
                 ))
@@ -941,7 +1002,7 @@ export default function Home() {
           </div>
         </div>
       )}
-      {categoryModalVisible  && (
+      {categoryModalVisible && (
         <div
           className="fixed inset-0 bg-[rgba(0,0,0,0.4)] z-50 flex justify-center items-end"
           onClick={() => setCategoryModalVisible(false)}
