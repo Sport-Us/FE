@@ -111,10 +111,13 @@ export default function Home() {
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [filterModalVisible, setFilterModalVisible] = useState(false);
   const [distanceModalVisible, setDistanceModalVisible] = useState(false);
+  const [categoryModalVisible, setCategoryModalVisible] = useState(false);
 
   const [selectedFilter, setSelectedFilter] = useState<"별점순" | "거리순">(
     "별점순"
   );
+  const filterOptions: ("별점순" | "거리순")[] = ["별점순", "거리순"];
+
   const [selectedDistance, setSelectedDistance] = useState<string>("제한 없음");
   const distanceOptions = ["500m", "1km", "2km", "5km", "10km", "제한 없음"];
   const [markers, setMarkers] = useState<any[]>([]);
@@ -620,40 +623,38 @@ export default function Home() {
                 onClick={() => setFilterModalVisible(false)}
               ></div>
 
-              <div className="fixed bottom-0 left-1/2 transform -translate-x-1/2 w-[375px] h-[189px] py-[20px] flex flex-col items-start gap-[10px] rounded-t-[20px] bg-[#FFF] z-50">
-                <div className="w-full text-[16px] font-semibold text-center leading-[24px]">
-                  필터
-                </div>
-                <div className="flex flex-col gap-[10px] w-full mt-[12px]">
-                  <button
-                    onClick={() => {
-                      setSelectedFilter("별점순");
-                      setFilterModalVisible(false);
-                    }}
-                    className={`w-full py-[18px] px-[16px] flex items-center  justify-start rounded-md ${
-                      selectedFilter === "별점순" ? "bg-[#F1F1F1]" : "bg-white"
-                    } text-[14px] font-${
-                      selectedFilter === "별점순" ? "semibold" : "normal"
-                    } text-[var(--Black,#1A1A1B)]`}
-                  >
-                    별점순
-                  </button>
+{filterModalVisible && (
+  <>
+    <div
+      className="fixed inset-0 bg-[rgba(0,0,0,0.4)] z-40"
+      onClick={() => setFilterModalVisible(false)}
+    ></div>
+    <div className="fixed bottom-0 left-1/2 transform -translate-x-1/2 w-[375px] h-auto py-[20px] flex flex-col items-start gap-[10px] rounded-t-[20px] bg-[#FFF] z-50">
+      <div className="w-full text-[16px] font-semibold text-center leading-[24px]">
+        정렬 필터
+      </div>
+      <div className="flex flex-col gap-[10px] w-full mt-[12px] max-h-[120px] overflow-y-scroll">
+        {filterOptions.map((filter, index) => (
+          <button
+            key={index}
+            onClick={() => {
+              setSelectedFilter(filter);
+              setFilterModalVisible(false);
+            }}
+            className={`w-full py-[18px] px-[16px] flex items-center justify-start rounded-md ${
+              selectedFilter === filter ? "bg-[#F1F1F1]" : "bg-white"
+            } text-[14px] font-${
+              selectedFilter === filter ? "semibold" : "normal"
+            } text-[var(--Black,#1A1A1B)]`}
+          >
+            {filter}
+          </button>
+        ))}
+      </div>
+    </div>
+  </>
+)}
 
-                  <button
-                    onClick={() => {
-                      setSelectedFilter("거리순");
-                      setFilterModalVisible(false);
-                    }}
-                    className={`w-full py-[18px] px-[16px] flex items-center justify-start rounded-md ${
-                      selectedFilter === "거리순" ? "bg-[#F1F1F1]" : "bg-white"
-                    } text-[14px] font-${
-                      selectedFilter === "거리순" ? "semibold" : "normal"
-                    } text-[var(--Black,#1A1A1B)]`}
-                  >
-                    거리순
-                  </button>
-                </div>
-              </div>
             </>
           )}
 
@@ -864,7 +865,7 @@ export default function Home() {
               <div
                 className="flex items-center justify-center w-[75px] h-[32px] flex-shrink-0 rounded-[20px] bg-[#EEE] cursor-pointer"
                 style={{ color: "var(--Black, #1A1A1B)", textAlign: "center" }}
-                onClick={() => setFilterModalVisible(true)}
+                onClick={() => setCategoryModalVisible(true)}
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -940,10 +941,10 @@ export default function Home() {
           </div>
         </div>
       )}
-      {filterModalVisible && (
+      {categoryModalVisible  && (
         <div
           className="fixed inset-0 bg-[rgba(0,0,0,0.4)] z-50 flex justify-center items-end"
-          onClick={() => setFilterModalVisible(false)}
+          onClick={() => setCategoryModalVisible(false)}
         >
           <div
             className="w-full max-w-[375px] h-auto bg-white rounded-t-[20px] p-3"
@@ -980,7 +981,10 @@ export default function Home() {
             <div className="w-full text-center mt-4">
               <button
                 className="px-4 py-2 bg-[#1A1A1B] text-white rounded-lg"
-                onClick={handleCategoryApply}
+                onClick={() => {
+                  handleCategoryApply();
+                  setCategoryModalVisible(false);
+                }}
               >
                 적용하기
               </button>

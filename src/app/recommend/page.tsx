@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { axios } from "@/lib/axios";
+import Footer from "../components/Footer";
 import { useRouter } from "next/navigation";
 import Loading from "../loading";
 
@@ -116,11 +117,11 @@ export default function RecommendPage() {
 
   const handleTabClick = (tab: "강좌 추천" | "시설 추천") => {
     setSelectedTab(tab);
-    setRecommendations([]); 
+    setRecommendations([]);
   };
 
   const handleItemClick = (placeId: number) => {
-    router.push(`/home/${placeId}`); 
+    router.push(`/home/${placeId}`);
   };
 
   return (
@@ -173,7 +174,7 @@ export default function RecommendPage() {
       </div>
 
       {loading ? (
-        <Loading /> 
+        <Loading />
       ) : (
         <div className="p-4">
           {recommendations.length > 0 ? (
@@ -234,6 +235,7 @@ export default function RecommendPage() {
           )}
         </div>
       )}
+      <Footer />
     </div>
   );
 }
