@@ -1,15 +1,21 @@
-import React from 'react';
-import { usePathname } from 'next/navigation';
-import Link from 'next/link';
+import React from "react";
+import { usePathname } from "next/navigation";
+import Link from "next/link";
 
 export default function Footer() {
   const pathname = usePathname();
 
-  const isActive = (path: string) => pathname === path ? "text-[#222] stroke-[#222]" : "text-gray-500 stroke-[#8E9398]";
+  const isActive = (path: string) =>
+    pathname === path
+      ? "text-[#222] stroke-[#222]"
+      : "text-gray-500 stroke-[#8E9398]";
 
   return (
     <footer className="fixed bottom-0 left-1/2 transform -translate-x-1/2 max-w-[375px] w-full bg-white flex items-start mx-auto">
-      <Link href="/home" className="flex w-[93.75px] py-2 flex-col items-center gap-0.5 flex-shrink-0">
+      <Link
+        href="/home"
+        className="flex w-[93.75px] py-2 flex-col items-center gap-0.5 flex-shrink-0"
+      >
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="25"
@@ -25,19 +31,26 @@ export default function Footer() {
             strokeLinejoin="round"
           />
         </svg>
-        <span className={`${isActive("/home")} font-medium text-[10px] leading-[15px] font-['Noto_Sans_KR']`}>
+        <span
+          className={`${isActive(
+            "/home"
+          )} font-medium text-[10px] leading-[15px] font-['Noto_Sans_KR']`}
+        >
           홈
         </span>
       </Link>
 
-      <Link href="/ai-recommendation" className="flex w-[93.75px] py-2 flex-col items-center gap-0.5 flex-shrink-0">
+      <Link
+        href="/recommend"
+        className="flex w-[93.75px] py-2 flex-col items-center gap-0.5 flex-shrink-0"
+      >
         <svg
           width="25"
           height="24"
           viewBox="0 0 25 24"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
-          className={isActive("/ai-recommendation")}
+          className={isActive("/recommend")}
         >
           <path
             d="M12.625 2L19.625 21L12.625 17L5.625 21L12.625 2Z"
@@ -46,12 +59,19 @@ export default function Footer() {
             strokeLinejoin="round"
           />
         </svg>
-        <span className={`${isActive("/ai-recommendation")} font-medium text-[10px] leading-[15px] font-['Noto_Sans_KR']`}>
+        <span
+          className={`${isActive(
+            "/recommend"
+          )} font-medium text-[10px] leading-[15px] font-['Noto_Sans_KR']`}
+        >
           AI 추천
         </span>
       </Link>
 
-      <Link href="/content" className="flex w-[93.75px] py-2 flex-col items-center gap-0.5 flex-shrink-0">
+      <Link
+        href="/content"
+        className="flex w-[93.75px] py-2 flex-col items-center gap-0.5 flex-shrink-0"
+      >
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="25"
@@ -67,12 +87,19 @@ export default function Footer() {
             strokeLinejoin="round"
           />
         </svg>
-        <span className={`${isActive("/content")} font-medium text-[10px] leading-[15px] font-['Noto_Sans_KR']`}>
+        <span
+          className={`${isActive(
+            "/content"
+          )} font-medium text-[10px] leading-[15px] font-['Noto_Sans_KR']`}
+        >
           콘텐츠
         </span>
       </Link>
 
-      <Link href="/mypage" className="flex w-[93.75px] py-2 flex-col items-center gap-0.5 flex-shrink-0">
+      <Link
+        href="/mypage"
+        className="flex w-[93.75px] py-2 flex-col items-center gap-0.5 flex-shrink-0"
+      >
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="25"
@@ -88,7 +115,11 @@ export default function Footer() {
             strokeLinejoin="round"
           />
         </svg>
-        <span className={`${isActive("/mypage")} font-medium text-[10px] leading-[15px] font-['Noto_Sans_KR']`}>
+        <span
+          className={`${isActive(
+            "/mypage"
+          )} font-medium text-[10px] leading-[15px] font-['Noto_Sans_KR']`}
+        >
           마이페이지
         </span>
       </Link>
