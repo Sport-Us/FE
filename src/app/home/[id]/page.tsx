@@ -65,7 +65,11 @@ const categoryMap: Record<string, string> = {
   PRIVATE: "민간시설",
 };
 
-export default function DetailPage({ params }: { params: { id: string } }) {
+interface PageProps {
+  params: { id: string };
+}
+
+export default function DetailPage({ params }: PageProps) {
   const router = useRouter();
   const { id: placeId } = params;
   const [placeDetail, setPlaceDetail] = useState<PlaceDetail | null>(null);
