@@ -30,9 +30,7 @@ export default function Login() {
           withCredentials: true,
         }
       );
-  
-      console.log("전체 응답:", response.data);
-  
+    
       if (response.data?.isSuccess) {
         const results = response.data.results || {}; 
         const accessToken = results.accessToken || ""; 

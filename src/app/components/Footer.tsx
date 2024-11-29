@@ -6,7 +6,7 @@ export default function Footer() {
   const pathname = usePathname();
 
   const isActive = (path: string) =>
-    pathname === path
+    pathname.startsWith(path)
       ? "text-[#222] stroke-[#222]"
       : "text-gray-500 stroke-[#8E9398]";
 

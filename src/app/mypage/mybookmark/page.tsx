@@ -8,7 +8,7 @@ import Loading from "@/app/loading";
 interface Bookmark {
   bookmarkId: number;
   category: string;
-  placeName: string;
+  name: string;
   rating: number;
   reviewCount: number;
   distance: string;
@@ -17,11 +17,10 @@ interface Bookmark {
 }
 
 const facilityCategories = [
-  { name: "전체", bgColor: "#F3F5F7" },
-  { name: "취약계층", bgColor: "#E5F9EE" },
-  { name: "공공시설", bgColor: "#E0F8F7" },
-  { name: "학교", bgColor: "#E0F4FD" },
-  { name: "민간시설", bgColor: "#E8EAF6" },
+  { name: "취약계층", eng: "DISABLED", bgColor: "#E5F9EE" },
+  { name: "공공시설", eng: "PUBLIC", bgColor: "#E0F8F7" },
+  { name: "학교", eng: "SCHOOL", bgColor: "#E0F4FD" },
+  { name: "민간시설", eng: "PRIVATE", bgColor: "#E8EAF6" },
 ];
 
 export default function BookmarkPage() {
@@ -50,9 +49,9 @@ export default function BookmarkPage() {
     }
   };
 
-  const getCategoryBgColor = (category: string) => {
-    const match = facilityCategories.find((item) => item.name === category);
-    return match ? match.bgColor : "#F3F5F7"; 
+  const getCategoryInfo = (category: string) => {
+    const categoryInfo = facilityCategories.find((item) => item.eng === category);
+    return categoryInfo || { name: "기타", bgColor: "#F3F5F7" };
   };
 
   useEffect(() => {
@@ -84,101 +83,106 @@ export default function BookmarkPage() {
         </div>
       ) : (
         <div className="p-4 space-y-6">
-          {bookmarks.map((bookmark) => (
-            <div
-              key={bookmark.bookmarkId}
-              className="flex flex-col gap-4 pb-4 border-b"
-              style={{
-                padding: "12px 6px",
-                borderBottom: "1px solid var(--Gray-200, #E8E8E8)",
-              }}
-            >
+          {bookmarks.map((bookmark) => {
+            const { name, bgColor } = getCategoryInfo(bookmark.category);
+
+            return (
               <div
-                className="inline-flex items-center justify-center h-[24px] px-[12px] rounded-[2px]"
+                key={bookmark.bookmarkId}
+                className="flex flex-col gap-[4px] pb-4 border-b"
                 style={{
-                  background: getCategoryBgColor(bookmark.category),
+                  padding: "12px 6px",
+                  borderBottom: "1px solid var(--Gray-200, #E8E8E8)",
                 }}
               >
-                <p
+                <div
+                  className="inline-flex items-center h-[24px] px-[8px] rounded-[2px]"
                   style={{
-                    color: "var(--Black, #1A1A1B)",
-                    fontFamily: "Noto Sans KR",
-                    fontSize: "12px",
-                    fontStyle: "normal",
-                    fontWeight: 400,
-                    lineHeight: "18px",
+                    background: bgColor,
+                    width: "fit-content",
                   }}
                 >
-                  {bookmark.category}
-                </p>
-              </div>
+                  <p
+                    style={{
+                      color: "var(--Black, #1A1A1B)",
+                      fontFamily: "Noto Sans KR",
+                      fontSize: "12px",
+                      fontStyle: "normal",
+                      fontWeight: 400,
+                      lineHeight: "18px",
+                    }}
+                  >
+                    {name}
+                  </p>
+                </div>
 
-              <p
-                style={{
-                  color: "var(--Black, #1A1A1B)",
-                  fontFamily: "Inter",
-                  fontSize: "16px",
-                  fontStyle: "normal",
-                  fontWeight: 600,
-                  lineHeight: "24px",
-                }}
-              >
-                {bookmark.placeName}
-              </p>
-
-              <div className="flex items-center gap-2">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="12"
-                  height="12"
-                  viewBox="0 0 12 12"
-                  fill="none"
-                >
-                  <path
-                    d="M6.00019 9.2674L8.73875 10.9237C9.24027 11.2273 9.85397 10.7786 9.72199 10.2111L8.99611 7.09635L11.4179 4.99789C11.86 4.61516 11.6225 3.88927 11.0418 3.84308L7.85449 3.57252L6.60729 0.629401C6.38293 0.0948873 5.61746 0.0948873 5.39309 0.629401L4.14589 3.56593L0.95861 3.83648C0.377904 3.88267 0.140342 4.60856 0.58247 4.99129L3.00428 7.08975L2.2784 10.2045C2.14642 10.772 2.76012 11.2207 3.26164 10.9171L6.00019 9.2674Z"
-                    fill="#FFC700"
-                  />
-                </svg>
                 <p
                   style={{
                     color: "var(--Black, #1A1A1B)",
                     fontFamily: "Inter",
-                    fontSize: "12px",
+                    fontSize: "16px",
                     fontStyle: "normal",
-                    fontWeight: 400,
-                    lineHeight: "18px",
+                    fontWeight: 600,
+                    lineHeight: "24px",
                   }}
                 >
-                  {bookmark.rating.toFixed(1)}
+                  {bookmark.name}
                 </p>
+
+                <div className="flex items-center gap-[4px]">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="12"
+                    height="12"
+                    viewBox="0 0 12 12"
+                    fill="none"
+                  >
+                    <path
+                      d="M6.00019 9.2674L8.73875 10.9237C9.24027 11.2273 9.85397 10.7786 9.72199 10.2111L8.99611 7.09635L11.4179 4.99789C11.86 4.61516 11.6225 3.88927 11.0418 3.84308L7.85449 3.57252L6.60729 0.629401C6.38293 0.0948873 5.61746 0.0948873 5.39309 0.629401L4.14589 3.56593L0.95861 3.83648C0.377904 3.88267 0.140342 4.60856 0.58247 4.99129L3.00428 7.08975L2.2784 10.2045C2.14642 10.772 2.76012 11.2207 3.26164 10.9171L6.00019 9.2674Z"
+                      fill="#FFC700"
+                    />
+                  </svg>
+                  <p
+                    style={{
+                      color: "var(--Black, #1A1A1B)",
+                      fontFamily: "Inter",
+                      fontSize: "12px",
+                      fontStyle: "normal",
+                      fontWeight: 400,
+                      lineHeight: "18px",
+                    }}
+                  >
+                    {bookmark.rating.toFixed(1)}
+                  </p>
+                  <p
+                    style={{
+                      color: "var(--Gray-400, #8E9398)",
+                      fontFamily: "Inter",
+                      fontSize: "12px",
+                      fontStyle: "normal",
+                      fontWeight: 400,
+                      lineHeight: "18px",
+                    }}
+                  >
+                    ({bookmark.reviewCount})
+                  </p>
+                </div>
+
                 <p
                   style={{
-                    color: "var(--Gray-400, #8E9398)",
+                    color: "var(--Gray-500, #505458)",
                     fontFamily: "Inter",
                     fontSize: "12px",
                     fontStyle: "normal",
-                    fontWeight: 400,
+                    fontWeight: 600,
                     lineHeight: "18px",
                   }}
                 >
-                  ({bookmark.reviewCount})
+                  {bookmark.address}
                 </p>
               </div>
-
-              <p
-                style={{
-                  color: "var(--Gray-500, #505458)",
-                  fontFamily: "Inter",
-                  fontSize: "12px",
-                  fontStyle: "normal",
-                  fontWeight: 600,
-                  lineHeight: "18px",
-                }}
-              >
-                {bookmark.distance} ・ {bookmark.address} | {bookmark.openHours}
-              </p>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

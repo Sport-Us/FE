@@ -1,19 +1,30 @@
 "use client";
 
-import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { axios } from "@/lib/axios";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
 import Loading from "@/app/loading";
+
 interface CardImage {
   cardImageUrl: string;
 }
 
-export default function ContentDetail() {
-  const searchParams = useSearchParams();
-  const contentTitle = searchParams.get("title") || "Default Title";
-  const contentId = searchParams.get("id");
+interface ContentDetailProps {
+  params: {
+    id: string;
+  };
+  searchParams: {
+    title?: string;
+  };
+}
+
+export default function ContentDetail({
+  params,
+  searchParams,
+}: ContentDetailProps) {
+  const contentId = params.id; 
+  const contentTitle = searchParams.title || "Default Title"; 
   const [images, setImages] = useState<CardImage[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -38,7 +49,7 @@ export default function ContentDetail() {
         console.log("Response:", response.data);
 
         if (response.data.isSuccess) {
-          setImages(response.data.results.cardImageUrlList); // 이미지 리스트 저장
+          setImages(response.data.results.cardImageUrlList);
         }
       } catch (err: any) {
         console.error("Error fetching card news images:", err);
@@ -55,7 +66,7 @@ export default function ContentDetail() {
   }
 
   return (
-    <div className="flex flex-col items-center w-full h-screen bg-white">
+    <div className="flex flex-col items-center w-full bg-white">
       <Header title={contentTitle} showBackButton={true} />
 
       <div className="flex flex-col w-[343px] items-start gap-4 mt-4">
