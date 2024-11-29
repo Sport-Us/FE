@@ -8,6 +8,7 @@ import Loading from "@/app/loading";
 interface Review {
   reviewId: number;
   writer: string;
+  placeName: string;
   content: string;
   rating: number;
   date: string;
@@ -131,7 +132,7 @@ export default function MyReviews() {
                       lineHeight: "24px",
                     }}
                   >
-                    장소명
+                    {review.placeName}
                   </p>
 
                   <div className="mt-[4px]">{renderStars(review.rating)}</div>

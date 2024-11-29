@@ -8,6 +8,7 @@ import Loading from "@/app/loading";
 interface Review {
   reviewId: number;
   writer: string;
+  writerImageUrl:string;
   content: string;
   rating: number;
   date: string;
@@ -171,7 +172,7 @@ export default function DetailPage({ params }: PageProps) {
   return (
     <div className="w-[375px] mx-auto bg-white">
       <header
-        className="flex items-center h-[44px] px-2 bg-white border-b"
+        className="flex items-center h-[44px] px-2 bg-white"
         style={{
           background: "var(--White, #FFF)",
         }}
@@ -247,7 +248,7 @@ export default function DetailPage({ params }: PageProps) {
                 lineHeight: "21px",
               }}
             >
-              휴관일 안내
+              기타 정보
             </div>
             <div
               style={{
@@ -314,11 +315,16 @@ export default function DetailPage({ params }: PageProps) {
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-[7px]">
                       <img
-                        src="/profile.png"
+                        src={review.writerImageUrl || "/profile.png"}
                         alt="프로필"
                         width={25}
                         height={25}
                         className="rounded-full"
+                        style={{
+                          borderRadius: "50%",
+                          width: "25px", 
+                          height: "25px",
+                        }}
                       />
                       <div>
                         <p className="text-[12px] text-[#505458] font-semibold">

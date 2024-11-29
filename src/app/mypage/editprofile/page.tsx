@@ -1,15 +1,38 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import Header from "@/app/components/Header";
+import { axios } from "@/lib/axios";
 
 export default function EditProfile() {
   const router = useRouter();
 
-  const [nickname, setNickname] = useState("");
+  const [nickname, setNickname] = useState<string | null>(null); 
+  const [originalNickname, setOriginalNickname] = useState<string | null>(null);
+  const [profileImage, setProfileImage] = useState<string | null>(null);
   const [isNicknameValid, setIsNicknameValid] = useState(false);
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const response = await axios.get("/users");
+        if (response.data.isSuccess) {
+          const { profileImageUrl, nickname } = response.data.results;
+          setProfileImage(profileImageUrl || "/profile.png");
+          setOriginalNickname(nickname);
+          setNickname(nickname); 
+        } else {
+          console.error("사용자 정보를 가져오는 데 실패했습니다.");
+        }
+      } catch (error) {
+        console.error("사용자 정보 가져오기 실패:", error);
+      }
+    };
+
+    fetchUserData();
+  }, []);
 
   const handleNicknameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -17,13 +40,33 @@ export default function EditProfile() {
     setIsNicknameValid(value.trim().length > 0);
   };
 
-  const handleNicknameCheck = () => {
-    alert("닉네임 중복 확인 중...");
+  const handleNicknameCheck = async () => {
+    try {
+      const response = await axios.post("/users/check-nickname", { nickname });
+      if (response.data.isSuccess) {
+        alert("사용 가능한 닉네임입니다.");
+      } else {
+        alert("이미 사용 중인 닉네임입니다.");
+      }
+    } catch (error) {
+      console.error("닉네임 중복 확인 실패:", error);
+      alert("닉네임 확인 중 오류가 발생했습니다.");
+    }
   };
 
-  const handleSaveClick = () => {
-    alert("프로필이 저장되었습니다.");
-    router.push("/mypage"); 
+  const handleSaveClick = async () => {
+    try {
+      const response = await axios.put("/users/profile", { nickname });
+      if (response.data.isSuccess) {
+        alert("프로필이 저장되었습니다.");
+        router.push("/mypage");
+      } else {
+        alert("프로필 저장에 실패했습니다.");
+      }
+    } catch (error) {
+      console.error("프로필 저장 실패:", error);
+      alert("프로필 저장 중 오류가 발생했습니다.");
+    }
   };
 
   return (
@@ -31,13 +74,19 @@ export default function EditProfile() {
       <Header title="프로필 수정" showBackButton={true} />
 
       <div className="relative mt-[62px] mb-6">
-        <Image
-          src="/profile.png"
-          alt="프로필 이미지"
-          width={100}
-          height={100}
-          className="rounded-full bg-[#F8F9FA]"
-        />
+        <div className="w-[100px] h-[100px] rounded-full overflow-hidden bg-[#F8F9FA]">
+          {profileImage ? (
+            <Image
+              src={profileImage}
+              alt="Profile"
+              width={100}
+              height={100}
+              className="object-cover w-full h-full"
+            />
+          ) : (
+            <div className="w-full h-full bg-gray-200 animate-pulse" />
+          )}
+        </div>
         <div className="absolute bottom-0 right-0">
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -80,8 +129,8 @@ export default function EditProfile() {
         <div className="flex items-center gap-2">
           <input
             type="text"
-            placeholder="닉네임을 입력해 주세요."
-            value={nickname}
+            placeholder={originalNickname || "닉네임을 입력해 주세요."}
+            value={nickname || ""}
             onChange={handleNicknameChange}
             className="flex h-[52px] px-[16px] items-center gap-[4px] w-full rounded-[8px] bg-[#F8F9FA] text-[#8E9398] text-[14px] leading-[21px] font-normal"
             style={{ fontFamily: "Inter" }}
