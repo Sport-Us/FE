@@ -1,4 +1,4 @@
-import type { NextConfig } from 'next';
+import type { NextConfig } from "next";
 
 const nextConfig: NextConfig & { experimental: { appDir: boolean } } = {
   reactStrictMode: true,
@@ -6,7 +6,10 @@ const nextConfig: NextConfig & { experimental: { appDir: boolean } } = {
     appDir: true,
   },
   images: {
-    domains: ['ssl.pstatic.net'],
+    domains: [
+      "ssl.pstatic.net", 
+      "sportusbucket.s3.ap-northeast-2.amazonaws.com", 
+    ],
   },
 };
 

@@ -62,13 +62,13 @@ export default function MyPage() {
       <Header title="마이페이지" showBackButton={false} />
 
       <div className="flex flex-col items-center mt-7">
-        <Image
-          src={profileImageUrl}
-          alt="Profile"
-          width={100}
-          height={100}
-          className="rounded-full"
-        />
+        <div className="w-[100px] h-[100px] rounded-full overflow-hidden">
+          <Image
+            src={profileImageUrl}
+            alt="Profile"
+            className="object-cover"
+          />
+        </div>
 
         <div className="flex items-center mt-4">
           <span
@@ -103,9 +103,7 @@ export default function MyPage() {
           >
             연결된 계정
           </span>
-          <div className="ml-2 flex justify-center items-center w-[20px] h-[20px] rounded-full bg-[#03C75A]">
-            <Image src={providerImageUrl} alt="Provider" width={7} height={7} />
-          </div>
+          <Image src={providerImageUrl} alt="Provider" width={20} height={20} />
         </div>
       </div>
 
