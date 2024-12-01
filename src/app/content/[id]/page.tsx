@@ -10,19 +10,13 @@ interface CardImage {
   cardImageUrl: string;
 }
 
-interface ContentDetailProps {
-  params: {
-    id: string;
-  };
-  searchParams: {
-    title?: string;
-  };
-}
-
 export default function ContentDetail({
   params,
   searchParams,
-}: ContentDetailProps) {
+}: {
+  params: { id: string };
+  searchParams?: { title?: string };
+}) {
   const contentId = params.id;
   const contentTitle = searchParams?.title || "Default Title";
   const [images, setImages] = useState<CardImage[]>([]);
