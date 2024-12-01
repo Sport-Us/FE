@@ -19,11 +19,11 @@ interface ContentDetailProps {
   };
 }
 
-export default async function ContentDetail({
+export default function ContentDetail({
   params,
   searchParams,
 }: ContentDetailProps) {
-  const contentId = (await params).id;
+  const contentId = params.id;
   const contentTitle = searchParams?.title || "Default Title";
   const [images, setImages] = useState<CardImage[]>([]);
   const [loading, setLoading] = useState(true);
