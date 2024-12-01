@@ -24,7 +24,7 @@ export default function ContentDetail({
   useEffect(() => {
     const fetchCardNewsImages = async () => {
       try {
-        const contentId = params?.id;
+        const contentId = params.id;
         if (!contentId) {
           throw new Error("Content ID is missing.");
         }
@@ -53,7 +53,7 @@ export default function ContentDetail({
     };
 
     fetchCardNewsImages();
-  }, [params]);
+  }, [params.id]);
 
   const contentTitle = searchParams?.title || "Default Title";
 
