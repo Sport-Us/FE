@@ -23,8 +23,8 @@ export default function ContentDetail({
   params,
   searchParams,
 }: ContentDetailProps) {
-  const contentId = params.id; 
-  const contentTitle = searchParams.title || "Default Title"; 
+  const contentId = params?.id || "";
+  const contentTitle = searchParams.title || "Default Title";
   const [images, setImages] = useState<CardImage[]>([]);
   const [loading, setLoading] = useState(true);
 
