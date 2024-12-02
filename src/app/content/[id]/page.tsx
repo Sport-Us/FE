@@ -10,14 +10,15 @@ interface CardImage {
   cardImageUrl: string;
 }
 
+interface ContentDetailProps {
+  params: { id: string };
+  searchParams?: { title?: string };
+}
+
 export default function ContentDetail({
   params,
   searchParams,
-}: {
-  params: { id: string };
-  searchParams?: { title?: string };
-}) {
-  
+}: ContentDetailProps) {
   const [images, setImages] = useState<CardImage[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -56,7 +57,6 @@ export default function ContentDetail({
   }, [params.id]);
 
   const contentTitle = searchParams?.title || "Default Title";
-
 
   if (loading) {
     return <Loading />;
