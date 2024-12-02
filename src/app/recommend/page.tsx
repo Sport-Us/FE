@@ -174,7 +174,7 @@ export default function RecommendPage() {
       </div>
 
       {loading ? (
-        <Loading />
+        <Loading showMessage={true} />
       ) : (
         <div className="p-4">
           {recommendations.length > 0 ? (

@@ -1,10 +1,15 @@
 'use client';
 
-export default function Loading() {
+interface LoadingProps {
+  showMessage?: boolean;
+}
+
+export default function Loading({ showMessage = false }: LoadingProps) {
   return (
     <div
       style={{
         display: 'flex',
+        flexDirection: 'column',
         justifyContent: 'center',
         alignItems: 'center',
         height: '100vh',
@@ -46,13 +51,26 @@ export default function Loading() {
           </linearGradient>
         </defs>
       </svg>
+      {showMessage && (
+        <p
+          style={{
+            marginTop: '16px',
+            fontSize: '16px',
+            color: '#505458',
+            fontWeight: 'bold',
+            textAlign: 'center',
+          }}
+        >
+          회원님에게 맞는 맞춤 강좌를 찾는 중입니다.
+        </p>
+      )}
       <style jsx>{`
         @keyframes spin {
           0% {
-            transform: rotate(0deg); 
+            transform: rotate(0deg);
           }
           100% {
-            transform: rotate(360deg); 
+            transform: rotate(360deg);
           }
         }
       `}</style>
