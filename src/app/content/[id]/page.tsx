@@ -23,8 +23,7 @@ export default function ContentDetail({ params }: { params: { id: string } }) {
   useEffect(() => {
     const fetchCardNewsImages = async () => {
       try {
-        const contentId = params.id;
-        if (!contentId) {
+        if (!params?.id) {
           throw new Error("Content ID is missing.");
         }
 
@@ -33,7 +32,7 @@ export default function ContentDetail({ params }: { params: { id: string } }) {
           throw new Error("AccessToken is missing.");
         }
 
-        const response = await axios.get(`/card-news/${contentId}`, {
+        const response = await axios.get(`/card-news/${params.id}`, {
           headers: {
             Authorization: `Bearer ${accessToken}`,
           },
@@ -52,7 +51,7 @@ export default function ContentDetail({ params }: { params: { id: string } }) {
     };
 
     fetchCardNewsImages();
-  }, [params.id]);
+  }, [params?.id]);
 
   if (loading) {
     return <Loading />;
