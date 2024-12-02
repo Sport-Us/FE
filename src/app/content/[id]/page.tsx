@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
+
 import { axios } from "@/lib/axios";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
@@ -11,15 +13,12 @@ interface CardImage {
 }
 
 
-export default function ContentDetail({
-  params,
-  searchParams,
-}: {
-  params: { id: string };
-  searchParams: { title?: string };
-}){
+export default function ContentDetail({ params }: { params: { id: string } }) {
+
   const [images, setImages] = useState<CardImage[]>([]);
   const [loading, setLoading] = useState(true);
+  const searchParams = useSearchParams();
+  const contentTitle = searchParams.get("title") || "Default Title";
 
   useEffect(() => {
     const fetchCardNewsImages = async () => {
@@ -54,8 +53,6 @@ export default function ContentDetail({
 
     fetchCardNewsImages();
   }, [params.id]);
-
-  const contentTitle = searchParams?.title || "Default Title";
 
   if (loading) {
     return <Loading />;
