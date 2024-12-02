@@ -79,8 +79,10 @@ export default function Content() {
         {contentItems.map((item) => (
           <Link
             key={item.id}
-            href={`/content/${item.id}?title=${encodeURIComponent(item.title)}`}
-            passHref
+            href={{
+              pathname: `/content/${item.id}`,
+              query: { title: item.title },
+            }}
           >
             <div className="flex items-center gap-[12px] w-full cursor-pointer">
               <img
