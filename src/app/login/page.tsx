@@ -30,14 +30,14 @@ export default function Login() {
           withCredentials: true,
         }
       );
-    
+
       if (response.data?.isSuccess) {
-        const results = response.data.results || {}; 
-        const accessToken = results.accessToken || ""; 
+        const results = response.data.results || {};
+        const accessToken = results.accessToken || "";
         const refreshToken = results.refreshToken || "";
 
-        const isOnboarded = results.isOnboarded || false; 
-  
+        const isOnboarded = results.isOnboarded || false;
+
         if (accessToken) {
           window.localStorage.setItem("accessToken", accessToken);
           // console.log("Access Token 저장 성공:", accessToken);
@@ -50,7 +50,7 @@ export default function Login() {
           console.warn("RefreshToken이 응답에 없습니다.");
         }
         if (isOnboarded) {
-          router.push("/home"); 
+          router.push("/home");
         } else {
           router.push("/onboarding");
         }
@@ -62,7 +62,14 @@ export default function Login() {
       setError("이메일과 비밀번호를 확인해주세요.");
     }
   };
-  
+
+  const handleNaverLoginClick = () => {
+    window.localStorage.removeItem("accessToken");
+
+    if (typeof window !== "undefined") {
+      window.location.href = "http://43.202.94.217/oauth2/authorization/naver";
+    }
+  };
 
   return (
     <div className="flex flex-col items-center min-h-screen bg-white px-4">
@@ -116,7 +123,10 @@ export default function Login() {
       </p>
 
       <div className="flex gap-6 mb-[16px]">
-        <button className="w-[54px] h-[54px] bg-[#03C75A] rounded-full flex items-center justify-center">
+        <button
+          className="w-[54px] h-[54px] bg-[#03C75A] rounded-full flex items-center justify-center"
+          onClick={handleNaverLoginClick}
+        >
           <Image src="/naver.png" alt="Naver Icon" width={20} height={20} />
         </button>
       </div>
