@@ -11,9 +11,11 @@ import Loading from "@/app/loading";
 interface CardImage {
   cardImageUrl: string;
 }
+interface ContentDetailProps {
+  params: Promise<{ id: string }>;
+}
 
-
-export default function ContentDetail({ params }: { params: { id: string } }) {
+export default function ContentDetail({ params }: ContentDetailProps) {
 
   const [images, setImages] = useState<CardImage[]>([]);
   const [loading, setLoading] = useState(true);
@@ -23,7 +25,8 @@ export default function ContentDetail({ params }: { params: { id: string } }) {
   useEffect(() => {
     const fetchCardNewsImages = async () => {
       try {
-        if (!params?.id) {
+        const resolvedParams = await params; // Promise 처리
+        if (!resolvedParams?.id) {
           throw new Error("Content ID is missing.");
         }
 
@@ -32,7 +35,7 @@ export default function ContentDetail({ params }: { params: { id: string } }) {
           throw new Error("AccessToken is missing.");
         }
 
-        const response = await axios.get(`/card-news/${params.id}`, {
+        const response = await axios.get(`/card-news/${resolvedParams.id}`, {
           headers: {
             Authorization: `Bearer ${accessToken}`,
           },
@@ -51,7 +54,7 @@ export default function ContentDetail({ params }: { params: { id: string } }) {
     };
 
     fetchCardNewsImages();
-  }, [params?.id]);
+  }, [params]);
 
   if (loading) {
     return <Loading />;

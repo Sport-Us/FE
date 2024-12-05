@@ -102,17 +102,14 @@ export default function Home() {
 
   const [map, setMap] = useState<any>(null);
   const [searchActive, setSearchActive] = useState(false);
+
   const [searchInput, setSearchInput] = useState("");
   const [currentPage, setCurrentPage] = useState(0);
   const [hasNextPage, setHasNextPage] = useState(true);
 
   const [searchLoading, setSearchLoading] = useState(false);
   const mapRef = useRef<any>(null);
-  const [recentSearches, setRecentSearches] = useState([
-    "서울",
-    "상도동",
-    "지하철역",
-  ]); // 최근 검색어
+  const [recentSearches, setRecentSearches] = useState<string[]>([]); // 최근 검색어
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [filterModalVisible, setFilterModalVisible] = useState(false);
   const [distanceModalVisible, setDistanceModalVisible] = useState(false);
@@ -134,6 +131,27 @@ export default function Home() {
   const clearMarkers = () => {
     markers.forEach((marker) => marker.setMap(null));
     setMarkers([]);
+  };
+
+  useEffect(() => {
+    // 로컬 스토리지에서 최근 검색어 가져오기
+    const storedSearches = localStorage.getItem("recentSearches");
+    if (storedSearches) {
+      setRecentSearches(JSON.parse(storedSearches));
+    }
+  }, []);
+
+  const addSearchToRecent = (searchTerm: string) => {
+    if (!searchTerm.trim()) return;
+
+    const updatedSearches = [
+      searchTerm,
+      ...recentSearches.filter((item) => item !== searchTerm),
+    ].slice(0, 10); // 중복 제거 후 최대 10개 유지
+    setRecentSearches(updatedSearches);
+
+    // 로컬 스토리지에 저장
+    localStorage.setItem("recentSearches", JSON.stringify(updatedSearches));
   };
 
   const categoryMap: Record<string, string> = {
@@ -294,7 +312,7 @@ export default function Home() {
     const entry = Object.entries(categoryMap).find(
       ([, value]) => value === englishCategory
     );
-    return entry ? entry[0] : "알 수 없음"; 
+    return entry ? entry[0] : "알 수 없음";
   };
 
   //검색
@@ -333,7 +351,13 @@ export default function Home() {
     setSearchLoading(true);
 
     try {
-      const response = await axios.get(currentEndpoint, { params });
+      const response = await axios.get(
+        selectedTab === "체육 강좌"
+          ? "/places/search/lectures"
+          : "/places/search/facilities",
+        { params }
+      );
+
       if (response.data.isSuccess) {
         const { placeList, hasNext, page } = response.data.results;
 
@@ -350,42 +374,27 @@ export default function Home() {
     }
   };
 
-  const debounce = (func: Function, delay: number) => {
-    let timer: NodeJS.Timeout;
-    return (...args: any[]) => {
-      clearTimeout(timer);
-      timer = setTimeout(() => func(...args), delay);
-    };
-  };
-  
-
-// 추후 수정
+  // 기존 useEffect 수정
   useEffect(() => {
-    setSearchInput(""); 
-    setSearchResults([]); 
-    setCurrentPage(0);
-    setHasNextPage(true); 
-  
-    fetchSearchResults(true);
+    if (searchInput.trim()) {
+      fetchSearchResults(true); // 검색어가 있을 때만 결과 호출
+    }
   }, [
-    selectedTab, 
+    selectedTab,
     selectedLectureCategories,
     selectedFacilityCategories,
     selectedFilter,
     selectedDistance,
   ]);
-  
 
   const handleTabChange = (newTab: "체육 강좌" | "체육 시설") => {
     if (newTab !== selectedTab) {
-      setSelectedTab(newTab);
-      setSearchInput(""); 
-      setSearchResults([]); 
-      setCurrentPage(0); 
-      setHasNextPage(true); 
+      setSelectedTab(newTab); // 상태 변경
+      setSearchResults([]); // 검색 결과 초기화
+      setHasNextPage(true); // 페이지네이션 초기화
+      setCurrentPage(0); // 페이지 초기화
     }
   };
-  
 
   const loadMoreResults = () => {
     if (searchLoading || !hasNextPage) return;
@@ -446,18 +455,21 @@ export default function Home() {
   }, []);
 
   const handleDeleteRecentSearch = (item: string) => {
-    setRecentSearches((prev) => prev.filter((search) => search !== item));
+    const updatedSearches = recentSearches.filter((search) => search !== item);
+    setRecentSearches(updatedSearches);
+    localStorage.setItem("recentSearches", JSON.stringify(updatedSearches));
   };
 
   const handleClearAllSearches = () => {
     setRecentSearches([]);
+    localStorage.removeItem("recentSearches");
   };
 
   const handleSearchInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value;
     setSearchInput(query);
 
-    if (query) {
+    if (query.trim()) {
       // const filteredResults = allResults.filter(
       //   (result) =>
       //     result.name.includes(query) || result.category.includes(query)
@@ -466,8 +478,22 @@ export default function Home() {
       fetchSearchResults(true);
     } else {
       setSearchResults([]);
-      setHasNextPage(false); 
+      setHasNextPage(false);
     }
+  };
+
+  // useEffect(() => {
+  //   if (map) {
+  //     fetchSearchResults(true); // 새 탭에 맞는 검색 결과 가져오기
+  //   }
+  // }, [selectedTab, map]);
+
+  const handleSearchSubmit = () => {
+    if (!searchInput.trim()) return;
+
+    addSearchToRecent(searchInput); // 검색 기록에 추가
+    setSearchInput("");
+    setSearchResults([]); // 검색 결과 초기화
   };
 
   const handleResultClick = (id: string) => {
@@ -507,12 +533,20 @@ export default function Home() {
             </button>
 
             <div className="flex items-center flex-1 relative p-[12px_16px] bg-[#F8F9FA] rounded-lg gap-4">
+              <input
+                type="text"
+                placeholder="검색어를 입력해 주세요."
+                className="flex-1 bg-transparent text-[#8E9398] text-[14px] font-normal outline-none"
+                value={searchInput}
+                onChange={handleSearchInput}
+              />
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="16"
                 height="16"
                 viewBox="0 0 16 16"
                 fill="none"
+                onClick={handleSearchSubmit}
               >
                 <g clip-path="url(#clip0_431_494)">
                   <path
@@ -539,103 +573,46 @@ export default function Home() {
                   </clipPath>
                 </defs>
               </svg>
-              <input
-                type="text"
-                placeholder="검색어를 입력해 주세요."
-                className="flex-1 bg-transparent text-[#8E9398] text-[14px] font-normal outline-none"
-                value={searchInput}
-                onChange={handleSearchInput}
-              />
-              {searchInput && (
-                <button
-                  onClick={() => {
-                    setSearchInput("");
-                    setSearchResults([]);
-                  }}
-                  className="absolute right-[16px] text-[#8E9398]"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="16"
-                    height="17"
-                    viewBox="0 0 16 17"
-                    fill="none"
-                  >
-                    <g clipPath="url(#clip0_431_503)">
-                      <path
-                        fillRule="evenodd"
-                        clipRule="evenodd"
-                        d="M3.75735 4.32645C3.95261 4.13119 4.26919 4.13119 4.46445 4.32645L12.2426 12.1046C12.4379 12.2999 12.4379 12.6165 12.2426 12.8117C12.0474 13.007 11.7308 13.007 11.5355 12.8117L3.75735 5.03356C3.56209 4.8383 3.56209 4.52172 3.75735 4.32645Z"
-                        fill="#505458"
-                      />
-                      <path
-                        fillRule="evenodd"
-                        clipRule="evenodd"
-                        d="M12.2427 4.32645C12.4379 4.52172 12.4379 4.8383 12.2427 5.03356L4.46448 12.8117C4.26922 13.007 3.95263 13.007 3.75737 12.8117C3.56211 12.6165 3.56211 12.2999 3.75737 12.1046L11.5355 4.32645C11.7308 4.13119 12.0474 4.13119 12.2427 4.32645Z"
-                        fill="#505458"
-                      />
-                    </g>
-                    <defs>
-                      <clipPath id="clip0_431_503">
-                        <rect
-                          width="12"
-                          height="12"
-                          fill="white"
-                          transform="translate(8 0.0837402) rotate(45)"
-                        />
-                      </clipPath>
-                    </defs>
-                  </svg>
-                </button>
-              )}
             </div>
           </div>
           {searchResults.length > 0 && (
             <div className="w-[343px] flex flex-col items-start mt-[16px]">
-              <div className="flex justify-start gap-[16px]">
+              <div className="flex items-center w-[343px] h-[36px] gap-[4px] bg-[#EEE] rounded-lg">
                 <button
-                  onClick={() => {
-                    setSelectedTab("체육 강좌");
-                  }}
-                  className={`relative text-[14px] leading-[21px] font-noto-sans ${
+                  onClick={() => handleTabChange("체육 강좌")}
+                  className={`flex items-center justify-center w-[175px] h-[36px] py-[10px] px-[16px] gap-[4px] rounded-lg ${
                     selectedTab === "체육 강좌"
-                      ? "text-[var(--Main-Primary,#222)] font-semibold"
-                      : "text-[var(--Gray-400,#8E9398)] font-medium"
+                      ? "bg-[rgba(1,135,186,0.28)]"
+                      : "bg-transparent"
                   }`}
                 >
-                  강좌 보기
-                  {selectedTab === "체육 강좌" && (
-                    <div
-                      className="absolute left-1/2 transform -translate-x-1/2 mt-[2px]"
-                      style={{
-                        width: "55px",
-                        height: "1px",
-                        background: "#222",
-                      }}
-                    ></div>
-                  )}
+                  <span
+                    className={`text-[12px] font-bold leading-[18px] ${
+                      selectedTab === "체육 강좌"
+                        ? "text-[#000]"
+                        : "text-[rgba(0,0,0,0.60)]"
+                    }`}
+                  >
+                    체육 강좌
+                  </span>
                 </button>
                 <button
-                  onClick={() => {
-                    setSelectedTab("체육 시설");
-                  }}
-                  className={`relative text-[14px] leading-[21px] font-noto-sans ${
+                  onClick={() => handleTabChange("체육 시설")}
+                  className={`flex items-center justify-center w-[175px] h-[36px] py-[10px] px-[16px] gap-[4px] rounded-lg ${
                     selectedTab === "체육 시설"
-                      ? "text-[var(--Main-Primary,#222)] font-semibold"
-                      : "text-[var(--Gray-400,#8E9398)] font-medium"
+                      ? "bg-[rgba(1,135,186,0.28)]"
+                      : "bg-transparent"
                   }`}
                 >
-                  시설 보기
-                  {selectedTab === "체육 시설" && (
-                    <div
-                      className="absolute left-1/2 transform -translate-x-1/2 mt-[2px]"
-                      style={{
-                        width: "55px",
-                        height: "1px",
-                        background: "#222",
-                      }}
-                    ></div>
-                  )}
+                  <span
+                    className={`text-[12px] font-bold leading-[18px] ${
+                      selectedTab === "체육 시설"
+                        ? "text-[#000]"
+                        : "text-[rgba(0,0,0,0.60)]"
+                    }`}
+                  >
+                    체육 시설
+                  </span>
                 </button>
               </div>
             </div>
@@ -1057,4 +1034,4 @@ export default function Home() {
       <Footer />
     </div>
   );
-}
+} 
