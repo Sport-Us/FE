@@ -58,7 +58,7 @@ export default function Login() {
         throw new Error("로그인 실패: isSuccess가 false입니다.");
       }
     } catch (error) {
-      console.error("로그인 실패:", error);
+      // console.error("로그인 실패:", error);
       setError("이메일과 비밀번호를 확인해주세요.");
     }
   };

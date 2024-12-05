@@ -14,7 +14,7 @@ export default function AuthCallback() {
       }
 
       const urlParams = new URLSearchParams(window.location.search);
-      console.log("Query String:", window.location.search);
+      // console.log("Query String:", window.location.search);
 
       const accessToken = urlParams.get("accessToken");
       const refreshToken = urlParams.get("refreshToken");

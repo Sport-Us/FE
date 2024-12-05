@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation"; // useParams로 동적 params 처리
 import { useEffect, useState } from "react";
 import { axios } from "@/lib/axios";
 import Loading from "@/app/loading";
@@ -70,9 +70,9 @@ interface PageProps {
   params: { id: string };
 }
 
-export default function DetailPage({ params }: PageProps) {
+export default function DetailPage() {
+  const { id: placeId } = useParams();
   const router = useRouter();
-  const { id: placeId } = params;
   const [placeDetail, setPlaceDetail] = useState<PlaceDetail | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
