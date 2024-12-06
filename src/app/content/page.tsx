@@ -32,8 +32,6 @@ export default function Content() {
           },
         });
 
-        console.log("Response:", response.data);
-
         if (response.data.isSuccess) {
           const items = response.data.results.cardNewsList.map((item: any) => ({
             id: item.cardNewsId,

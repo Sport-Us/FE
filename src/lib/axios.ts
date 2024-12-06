@@ -1,7 +1,7 @@
 import Axios from "axios";
 
 export const axios = Axios.create({
-  baseURL: "http://43.202.94.217/",
+  baseURL: process.env.REACT_APP_BASE_URL,
   withCredentials: true,
 });
 
