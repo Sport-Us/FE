@@ -1,10 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { axios } from "@/lib/axios";
 import Footer from "../components/Footer";
-import { useRef } from "react";
 
 export default function Home() {
   const router = useRouter();
@@ -35,8 +34,6 @@ export default function Home() {
         if (!accessToken) {
           console.error("accessToken이 없습니다. 로그인 페이지로 이동합니다.");
           router.push("/login");
-        } else {
-          console.log("일반 로그인 토큰 확인 성공:", accessToken);
         }
       }
     };
@@ -102,36 +99,9 @@ export default function Home() {
 
   const [map, setMap] = useState<any>(null);
   const [searchActive, setSearchActive] = useState(false);
-
-  const [searchInput, setSearchInput] = useState("");
-  const [currentPage, setCurrentPage] = useState(0);
-  const [hasNextPage, setHasNextPage] = useState(true);
-
-  const [searchLoading, setSearchLoading] = useState(false);
-  const mapRef = useRef<any>(null);
-  const [recentSearches, setRecentSearches] = useState<string[]>([]); // 최근 검색어
   const [searchResults, setSearchResults] = useState<any[]>([]);
-  const [filterModalVisible, setFilterModalVisible] = useState(false);
-  const [distanceModalVisible, setDistanceModalVisible] = useState(false);
-  const [categoryModalVisible, setCategoryModalVisible] = useState(false);
-
-  const [selectedFilter, setSelectedFilter] = useState<"별점순" | "거리순">(
-    "별점순"
-  );
-  const filterOptions: ("별점순" | "거리순")[] = ["별점순", "거리순"];
-
-  const [selectedDistance, setSelectedDistance] = useState<string>("제한 없음");
-  const distanceOptions = ["500m", "1km", "2km", "5km", "10km", "제한 없음"];
-  const [markers, setMarkers] = useState<any[]>([]);
-
-  useEffect(() => {
-    clearMarkers();
-  }, [selectedTab]);
-
-  const clearMarkers = () => {
-    markers.forEach((marker) => marker.setMap(null));
-    setMarkers([]);
-  };
+  const [recentSearches, setRecentSearches] = useState<string[]>([]); // 최근 검색어
+  const mapRef = useRef<any>(null);
 
   useEffect(() => {
     // 로컬 스토리지에서 최근 검색어 가져오기
@@ -308,6 +278,46 @@ export default function Home() {
     setMarkers(newMarkers);
   };
 
+
+
+  const [searchInput, setSearchInput] = useState("");
+  const [currentPage, setCurrentPage] = useState(0);
+  const [hasNextPage, setHasNextPage] = useState(true);
+
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [filterModalVisible, setFilterModalVisible] = useState(false);
+  const [distanceModalVisible, setDistanceModalVisible] = useState(false);
+  const [categoryModalVisible, setCategoryModalVisible] = useState(false);
+
+  const [selectedFilter, setSelectedFilter] = useState<"별점순" | "거리순">(
+    "별점순"
+  );
+  const filterOptions: ("별점순" | "거리순")[] = ["별점순", "거리순"];
+
+  const [selectedDistance, setSelectedDistance] = useState<string>("제한 없음");
+  const distanceOptions = ["500m", "1km", "2km", "5km", "10km", "제한 없음"];
+  const [markers, setMarkers] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (map) {
+      handleCategoryApply();
+    }
+  }, [map]);
+
+  useEffect(() => {
+    clearMarkers();
+  }, [selectedTab]);
+
+  const clearMarkers = () => {
+    markers.forEach((marker) => marker.setMap(null));
+    setMarkers([]);
+  };
+
+
+
+
+  
+
   const getKoreanCategory = (englishCategory: string): string => {
     const entry = Object.entries(categoryMap).find(
       ([, value]) => value === englishCategory
@@ -316,7 +326,7 @@ export default function Home() {
   };
 
   //검색
-  const defaultMaxDistance = 3000;
+  const defaultMaxDistance = 100000;
   const currentCategory =
     selectedTab === "체육 강좌"
       ? selectedLectureCategories
@@ -374,10 +384,9 @@ export default function Home() {
     }
   };
 
-  // 기존 useEffect 수정
   useEffect(() => {
     if (searchInput.trim()) {
-      fetchSearchResults(true); // 검색어가 있을 때만 결과 호출
+      fetchSearchResults(true); 
     }
   }, [
     selectedTab,
@@ -482,18 +491,11 @@ export default function Home() {
     }
   };
 
-  // useEffect(() => {
-  //   if (map) {
-  //     fetchSearchResults(true); // 새 탭에 맞는 검색 결과 가져오기
-  //   }
-  // }, [selectedTab, map]);
-
   const handleSearchSubmit = () => {
     if (!searchInput.trim()) return;
 
-    addSearchToRecent(searchInput); // 검색 기록에 추가
-    setSearchInput("");
-    setSearchResults([]); // 검색 결과 초기화
+    addSearchToRecent(searchInput);
+    //fetchSearchResults(true);
   };
 
   const handleResultClick = (id: string) => {
@@ -575,7 +577,7 @@ export default function Home() {
               </svg>
             </div>
           </div>
-          {searchResults.length > 0 && (
+          {searchInput && searchResults.length > 0 && (
             <div className="w-[343px] flex flex-col items-start mt-[16px]">
               <div className="flex items-center w-[343px] h-[36px] gap-[4px] bg-[#EEE] rounded-lg">
                 <button
@@ -748,7 +750,7 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="w-[343px] mt-[7px]">
+          <div className="w-[343px] mt-[7px] flex-1 overflow-y-auto pb-[80px]">
             {searchInput ? (
               searchResults.length > 0 ? (
                 searchResults.map((result) => (
