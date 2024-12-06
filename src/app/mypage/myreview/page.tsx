@@ -26,15 +26,23 @@ export default function MyReviews() {
       const response = await axios.get("/users/review", {
         params: { lastReviewId: lastId },
       });
+  
       if (response.data.isSuccess) {
         const { reviewSimpleResponseList, hasNext } = response.data.results;
-        setReviews((prev) => [...prev, ...reviewSimpleResponseList]);
+  
+        setReviews((prev) => {
+          const newReviews = reviewSimpleResponseList.filter(
+            (newReview: { reviewId: number; }) => !prev.some((prevReview) => prevReview.reviewId === newReview.reviewId)
+          );
+          return [...prev, ...newReviews];
+        });
+  
         if (reviewSimpleResponseList.length > 0) {
           setLastReviewId(
-            reviewSimpleResponseList[reviewSimpleResponseList.length - 1]
-              .reviewId
+            reviewSimpleResponseList[reviewSimpleResponseList.length - 1].reviewId
           );
         }
+  
         setHasNext(hasNext);
       } else {
         alert("리뷰를 불러오는 데 실패했습니다.");
@@ -46,6 +54,7 @@ export default function MyReviews() {
       setLoading(false);
     }
   };
+  
 
   const handleDeleteReview = async (reviewId: number) => {
     if (!confirm("정말 삭제하시겠습니까?")) return;
