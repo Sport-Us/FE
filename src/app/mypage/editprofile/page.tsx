@@ -9,7 +9,7 @@ import { axios } from "@/lib/axios";
 export default function EditProfile() {
   const router = useRouter();
 
-  const [nickname, setNickname] = useState<string | null>(null); 
+  const [nickname, setNickname] = useState<string | null>(null);
   const [originalNickname, setOriginalNickname] = useState<string | null>(null);
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [isNicknameValid, setIsNicknameValid] = useState(false);
@@ -22,7 +22,7 @@ export default function EditProfile() {
           const { profileImageUrl, nickname } = response.data.results;
           setProfileImage(profileImageUrl || "/profile.png");
           setOriginalNickname(nickname);
-          setNickname(nickname); 
+          setNickname(nickname);
         } else {
           console.error("사용자 정보를 가져오는 데 실패했습니다.");
         }
@@ -42,7 +42,9 @@ export default function EditProfile() {
 
   const handleNicknameCheck = async () => {
     try {
-      const response = await axios.post("/users/check-nickname", { nickname });
+      const response = await axios.get("/auth/nickname/validation", {
+        params: { nickname },
+      });
       if (response.data.isSuccess) {
         alert("사용 가능한 닉네임입니다.");
       } else {
