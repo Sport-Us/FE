@@ -62,11 +62,17 @@ export default function MyPage() {
       <Header title="마이페이지" showBackButton={false} />
 
       <div className="flex flex-col items-center mt-7">
-        <div className="w-[100px] h-[100px] rounded-full overflow-hidden">
+        <div
+          className="w-[100px] h-[100px] rounded-full overflow-hidden"
+          style={{
+            position: "relative",
+          }}
+        >
           <Image
             src={profileImageUrl}
             alt="Profile"
-            className="object-cover"
+            layout="fill"
+            objectFit="cover" 
           />
         </div>
 
