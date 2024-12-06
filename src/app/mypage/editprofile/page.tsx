@@ -13,6 +13,7 @@ export default function EditProfile() {
   const [originalNickname, setOriginalNickname] = useState<string | null>(null);
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [isNicknameValid, setIsNicknameValid] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -58,7 +59,23 @@ export default function EditProfile() {
 
   const handleSaveClick = async () => {
     try {
-      const response = await axios.put("/users/profile", { nickname });
+      const formData = new FormData();
+  
+      const requestData = {
+        nickname: nickname || "",
+      };
+      formData.append("request", JSON.stringify(requestData));
+  
+      if (selectedFile) {
+        formData.append("file", selectedFile);
+      }
+  
+      const response = await axios.put("/users/profile", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+  
       if (response.data.isSuccess) {
         alert("프로필이 저장되었습니다.");
         router.push("/mypage");
@@ -70,7 +87,22 @@ export default function EditProfile() {
       alert("프로필 저장 중 오류가 발생했습니다.");
     }
   };
-
+  
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setSelectedFile(file);
+  
+      const reader = new FileReader();
+      reader.onload = () => {
+        if (reader.result) {
+          setProfileImage(reader.result as string);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+  
   return (
     <div className="flex flex-col items-center min-h-screen bg-white px-4 relative">
       <Header title="프로필 수정" showBackButton={true} />
@@ -89,36 +121,47 @@ export default function EditProfile() {
             <div className="w-full h-full bg-gray-200 animate-pulse" />
           )}
         </div>
+        
         <div className="absolute bottom-0 right-0">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="25"
-            height="25"
-            viewBox="0 0 25 25"
-            fill="none"
-          >
-            <g clipPath="url(#clip0_407_2745)">
-              <path
-                d="M24.5 12C24.5 5.37258 19.1274 0 12.5 0C5.87258 0 0.5 5.37258 0.5 12C0.5 18.6274 5.87258 24 12.5 24C19.1274 24 24.5 18.6274 24.5 12Z"
-                fill="#0187BA"
-              />
-              <path
-                d="M16.5001 10.6665H13.8334V7.99984C13.8334 7.64624 13.6929 7.30709 13.4429 7.05701C13.1928 6.80698 12.8537 6.6665 12.5001 6.6665C12.1465 6.6665 11.8073 6.80698 11.5573 7.05701C11.3072 7.30709 11.1667 7.64624 11.1667 7.99984L11.2141 10.6665H8.50008C8.14648 10.6665 7.80733 10.807 7.55725 11.057C7.30723 11.3071 7.16675 11.6462 7.16675 11.9998C7.16675 12.3534 7.30723 12.6926 7.55725 12.9427C7.80733 13.1927 8.14648 13.3332 8.50008 13.3332L11.2141 13.2859L11.1667 15.9998C11.1667 16.3534 11.3072 16.6926 11.5573 16.9427C11.8073 17.1927 12.1465 17.3332 12.5001 17.3332C12.8537 17.3332 13.1928 17.1927 13.4429 16.9427C13.6929 16.6926 13.8334 16.3534 13.8334 15.9998V13.2859L16.5001 13.3332C16.8537 13.3332 17.1928 13.1927 17.4429 12.9427C17.6929 12.6926 17.8334 12.3534 17.8334 11.9998C17.8334 11.6462 17.6929 11.3071 17.4429 11.057C17.1928 10.807 16.8537 10.6665 16.5001 10.6665Z"
-                fill="white"
-              />
-            </g>
-            <defs>
-              <clipPath id="clip0_407_2745">
-                <rect
-                  width="24"
-                  height="24"
-                  fill="white"
-                  transform="translate(0.5)"
-                />
-              </clipPath>
-            </defs>
-          </svg>
-        </div>
+  <label htmlFor="profileImageInput" className="cursor-pointer">
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="25"
+      height="25"
+      viewBox="0 0 25 25"
+      fill="none"
+    >
+      <g clipPath="url(#clip0_407_2745)">
+        <path
+          d="M24.5 12C24.5 5.37258 19.1274 0 12.5 0C5.87258 0 0.5 5.37258 0.5 12C0.5 18.6274 5.87258 24 12.5 24C19.1274 24 24.5 18.6274 24.5 12Z"
+          fill="#0187BA"
+        />
+        <path
+          d="M16.5001 10.6665H13.8334V7.99984C13.8334 7.64624 13.6929 7.30709 13.4429 7.05701C13.1928 6.80698 12.8537 6.6665 12.5001 6.6665C12.1465 6.6665 11.8073 6.80698 11.5573 7.05701C11.3072 7.30709 11.1667 7.64624 11.1667 7.99984L11.2141 10.6665H8.50008C8.14648 10.6665 7.80733 10.807 7.55725 11.057C7.30723 11.3071 7.16675 11.6462 7.16675 11.9998C7.16675 12.3534 7.30723 12.6926 7.55725 12.9427C7.80733 13.1927 8.14648 13.3332 8.50008 13.3332L11.2141 13.2859L11.1667 15.9998C11.1667 16.3534 11.3072 16.6926 11.5573 16.9427C11.8073 17.1927 12.1465 17.3332 12.5001 17.3332C12.8537 17.3332 13.1928 17.1927 13.4429 16.9427C13.6929 16.6926 13.8334 16.3534 13.8334 15.9998V13.2859L16.5001 13.3332C16.8537 13.3332 17.1928 13.1927 17.4429 12.9427C17.6929 12.6926 17.8334 12.3534 17.8334 11.9998C17.8334 11.6462 17.6929 11.3071 17.4429 11.057C17.1928 10.807 16.8537 10.6665 16.5001 10.6665Z"
+          fill="white"
+        />
+      </g>
+      <defs>
+        <clipPath id="clip0_407_2745">
+          <rect
+            width="24"
+            height="24"
+            fill="white"
+            transform="translate(0.5)"
+          />
+        </clipPath>
+      </defs>
+    </svg>
+  </label>
+  <input
+    id="profileImageInput"
+    type="file"
+    accept="image/*"
+    onChange={handleFileChange}
+    className="hidden"
+  />
+</div>
+
       </div>
 
       <div className="w-full max-w-xs">
