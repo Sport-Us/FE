@@ -83,7 +83,7 @@ export default function ReviewPage() {
 
       if (response.status === 200 || response.status === 201) {
         alert("리뷰가 성공적으로 등록되었습니다.");
-        router.push("/"); 
+        router.back();
       }
     } catch (error) {
       console.error("리뷰 등록 중 오류가 발생했습니다:", error);

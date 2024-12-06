@@ -79,7 +79,7 @@ export default function MyPage() {
     localStorage.removeItem("refreshToken");
 
     alert("로그아웃되었습니다.");
-    router.push("/home");
+    router.push("/");
   };
 
   const handleWithdrawClick = async () => {
