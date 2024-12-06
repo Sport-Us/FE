@@ -13,15 +13,14 @@ export default function NotFound() {
 
   return (
     <div style={{ textAlign: 'center', marginTop: '100px' }}>
-      <h1>잘못된 경로입니다.</h1>
-      <p>메인 페이지로 돌아가세요.</p>
+      <h1 className='mb-[130px]'>잘못된 경로입니다.</h1>
       <button
         onClick={handleGoHome}
         style={{
           padding: '10px 20px',
           fontSize: '16px',
           cursor: 'pointer',
-          backgroundColor: '#0070f3',
+          backgroundColor: '#0187BA',
           color: 'white',
           border: 'none',
           borderRadius: '5px',
