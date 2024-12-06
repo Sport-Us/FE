@@ -1,10 +1,10 @@
 'use client';
 
 interface LoadingProps {
-  showMessage?: boolean;
+  message?: string;
 }
 
-export default function Loading({ showMessage = false }: LoadingProps) {
+export default function Loading({ message }: LoadingProps) {
   return (
     <div
       style={{
@@ -51,7 +51,7 @@ export default function Loading({ showMessage = false }: LoadingProps) {
           </linearGradient>
         </defs>
       </svg>
-      {showMessage && (
+      {message && (
         <p
           style={{
             marginTop: '16px',
@@ -61,7 +61,7 @@ export default function Loading({ showMessage = false }: LoadingProps) {
             textAlign: 'center',
           }}
         >
-          회원님에게 맞는 맞춤 강좌를 찾는 중입니다.
+          {message}
         </p>
       )}
       <style jsx>{`

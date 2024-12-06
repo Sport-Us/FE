@@ -174,7 +174,13 @@ export default function RecommendPage() {
       </div>
 
       {loading ? (
-        <Loading showMessage={true} />
+        <Loading
+          message={
+            selectedTab === "강좌 추천"
+              ? "회원님에게 맞는 맞춤 강좌를 찾는 중입니다."
+              : "회원님에게 맞는 맞춤 시설을 찾는 중입니다."
+          }
+        />
       ) : (
         <div className="p-4">
           {recommendations.length > 0 ? (
