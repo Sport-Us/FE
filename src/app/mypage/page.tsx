@@ -13,9 +13,49 @@ interface UserProfile {
   provider: string;
 }
 
+interface ModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  title: string;
+  content: string;
+}
+
+const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, content }) => {
+  if (!isOpen) return null;
+
+  const handleBackgroundClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  };
+
+  return (
+    <div
+      className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50"
+      onClick={handleBackgroundClick}
+    >
+      <div className="bg-white rounded-lg shadow-lg w-[90%] max-w-sm h-[38%] p-6 overflow-auto">
+        <h2 className="text-lg font-semibold mb-5 text-center">{title}</h2>
+        <p className="text-sm text-gray-800 mb-6 whitespace-pre-line">
+          {content}
+        </p>
+      </div>
+    </div>
+  );
+};
+
 export default function MyPage() {
   const router = useRouter();
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [modalInfo, setModalInfo] = useState<{
+    isOpen: boolean;
+    title: string;
+    content: string;
+  }>({
+    isOpen: false,
+    title: "",
+    content: "",
+  });
 
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -34,6 +74,14 @@ export default function MyPage() {
     fetchUserProfile();
   }, []);
 
+  const handleLogoutClick = () => {
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
+
+    alert("로그아웃되었습니다.");
+    router.push("/home");
+  };
+
   const handleWithdrawClick = async () => {
     try {
       const response = await axios.delete("/auth/withdraw");
@@ -47,6 +95,14 @@ export default function MyPage() {
       console.error("회원탈퇴 실패:", error);
       alert("회원탈퇴 중 오류가 발생했습니다.");
     }
+  };
+
+  const openModal = (title: string, content: string) => {
+    setModalInfo({ isOpen: true, title, content });
+  };
+
+  const closeModal = () => {
+    setModalInfo({ ...modalInfo, isOpen: false });
   };
 
   const profileImageUrl =
@@ -72,7 +128,7 @@ export default function MyPage() {
             src={profileImageUrl}
             alt="Profile"
             layout="fill"
-            objectFit="cover" 
+            objectFit="cover"
           />
         </div>
 
@@ -119,15 +175,32 @@ export default function MyPage() {
           { name: "내 리뷰", onClick: () => router.push("/mypage/myreview") },
           {
             name: "개인정보처리방침",
-            onClick: () => alert("개인정보처리방침"),
+            onClick: () =>
+              openModal(
+                "개인정보처리방침",
+                `Sport:Us는 서비스 제공을 위해 필요한 최소한의 개인정보를 수집하며, 이를 이용하여 맞춤형 서비스를 제공합니다.
+      
+        수집되는 정보는 안전하게 보호되며 필요시 마케팅 목적으로도 활용될 수 있습니다.`
+              ),
           },
-          { name: "서비스 이용약관", onClick: () => alert("이용약관") },
-          { name: "로그아웃", onClick: () => alert("로그아웃") },
+          {
+            name: "서비스 이용약관",
+            onClick: () =>
+              openModal(
+                "서비스 이용약관",
+                `Sport:Us 서비스 이용 약관은 여러분의 서비스 이용과 관련한 기본적인 권리 및 의무를 규정합니다.
+      
+      서비스 제공자는 이용자의 데이터를 안전하게 관리하고, 불법 행위를 방지하며, 이용자는 이를 준수하여 정당한 사용을 보장받습니다.
+      
+      구체적인 조항은 회사의 정책에 따라 수정될 수 있습니다.`
+              ),
+          },
+          { name: "로그아웃", onClick: handleLogoutClick },
         ].map((item) => (
           <div
             key={item.name}
             onClick={item.onClick}
-            className="flex items-center h-[48px] pl-[16px] gap-2"
+            className="flex items-center h-[48px] pl-[16px] gap-2 cursor-pointer"
           >
             <span
               className="text-black font-semibold text-[14px] leading-[21px]"
@@ -179,6 +252,14 @@ export default function MyPage() {
       </div>
 
       <Footer />
+
+      {/* 모달 추가 */}
+      <Modal
+        isOpen={modalInfo.isOpen}
+        onClose={closeModal}
+        title={modalInfo.title}
+        content={modalInfo.content}
+      />
     </div>
   );
 }
