@@ -34,9 +34,18 @@ export default function BookmarkPage() {
       const response = await axios.get("/users/bookmark", {
         params: { lastBookMarkId: lastId },
       });
+  
       if (response.data.isSuccess) {
         const { bookMarkList, hasNext } = response.data.results;
-        setBookmarks((prev) => [...prev, ...bookMarkList]);
+  
+        setBookmarks((prev) => {
+          const newBookmarks = bookMarkList.filter(
+            (newBookmark: { bookmarkId: number; }) =>
+              !prev.some((prevBookmark) => prevBookmark.bookmarkId === newBookmark.bookmarkId)
+          );
+          return [...prev, ...newBookmarks];
+        });
+  
         setHasNext(hasNext);
       } else {
         alert("북마크를 불러오는 데 실패했습니다.");
@@ -48,6 +57,7 @@ export default function BookmarkPage() {
       setLoading(false);
     }
   };
+  
 
   const getCategoryInfo = (category: string) => {
     const categoryInfo = facilityCategories.find((item) => item.eng === category);
