@@ -107,7 +107,7 @@ export default function MyReviews() {
   }
 
   return (
-    <div className="w-full min-h-screen bg-white">
+    <div className="w-full min-h-screen bg-white flex flex-col items-center">
       <Header title="내 리뷰" showBackButton={true} />
 
       {reviews.length === 0 ? (

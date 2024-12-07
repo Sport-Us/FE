@@ -73,7 +73,7 @@ export default function BookmarkPage() {
   }
 
   return (
-    <div className="w-full min-h-screen bg-white">
+    <div className="w-full min-h-screen bg-white flex flex-col items-center">
       <Header title="북마크" showBackButton={true} />
 
       {bookmarks.length === 0 ? (

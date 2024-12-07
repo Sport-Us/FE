@@ -7,8 +7,6 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { axios } from "@/lib/axios";
 
-
-
 export default function Login() {
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -69,7 +67,8 @@ export default function Login() {
     window.localStorage.removeItem("accessToken");
 
     if (typeof window !== "undefined") {
-      window.location.href = "https://global-nest.store/oauth2/authorization/naver";
+      window.location.href =
+        "https://global-nest.store/oauth2/authorization/naver";
     }
   };
 
@@ -101,7 +100,7 @@ export default function Login() {
         <button
           onClick={handleLoginClick}
           disabled={!isLoginEnabled}
-          className={`flex justify-center items-center rounded-lg w-[343px] h-[50px] text-center text-[14px] font-semibold ${
+          className={`flex justify-center items-center rounded-lg h-[50px] text-center text-[14px] font-semibold w-full ${
             isLoginEnabled
               ? "bg-[#0187BA] text-white"
               : "bg-[#F8F9FA] text-[#8E9398]"
