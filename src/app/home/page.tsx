@@ -231,6 +231,7 @@ export default function Home() {
     if (!map) return;
 
     // console.log("handleCategoryApply 호출됨:", { latitude, longitude }); // 디버그 로그
+    clearMarkers();
 
     const center = map.getCenter();
     const lat = latitude || center.lat();
@@ -246,9 +247,11 @@ export default function Home() {
         ? selectedLectureCategories
         : selectedFacilityCategories;
 
+    // 기존 마커 삭제
+    clearMarkers();
+
     const places = await fetchPlaces(lat, lng, radius, categoriesToSend);
 
-    clearMarkers();
     const newMarkers = places.map(
       (place: {
         category: string;
@@ -304,23 +307,40 @@ export default function Home() {
 
   useEffect(() => {
     if (map) {
-      window.naver.maps.Event.addListener(map, "bounds_changed", () => {
-        const center = map.getCenter();
-        const latitude = center.lat();
-        const longitude = center.lng();
-        // console.log("지도 이동 감지: 새 좌표", latitude, longitude); // 디버그 로그
-
-        handleCategoryApply(latitude, longitude);
-      });
+      // 초기 로딩 시 마커 표시
+      const center = map.getCenter();
+      handleCategoryApply(center.lat(), center.lng());
+  
+      // 지도 이동 시 마커 업데이트
+      const onBoundsChanged = () => {
+        const newCenter = map.getCenter();
+        const newLatitude = newCenter.lat();
+        const newLongitude = newCenter.lng();
+        handleCategoryApply(newLatitude, newLongitude);
+      };
+  
+      // 지도 이동 시 마커 업데이트를 위한 이벤트 리스너 등록
+      const listener = window.naver.maps.Event.addListener(map, "bounds_changed", onBoundsChanged);
+  
+      // 컴포넌트 언마운트 시 이벤트 리스너 제거
+      return () => {
+        window.naver.maps.Event.removeListener(listener);
+      };
     }
-  }, [map, handleCategoryApply]);
+  }, [map]);
+  
 
   useEffect(() => {
     clearMarkers();
   }, [selectedTab]);
 
   const clearMarkers = () => {
+    if (!markers || markers.length === 0) return;
+
+    // 기존 모든 마커 제거
     markers.forEach((marker) => marker.setMap(null));
+
+    // 상태 초기화
     setMarkers([]);
   };
 
@@ -418,14 +438,6 @@ export default function Home() {
 
   useEffect(() => {
     const initMap = (latitude: number, longitude: number) => {
-      //console.log("initMap 호출됨", { latitude, longitude }); // 디버그 로그
-
-      // if (!window.naver) {
-      //   //console.error("네이버 지도 API가 로드되지 않았습니다.");
-      // } else {
-      //   console.log("네이버 지도 API 로드 성공");
-      // }
-
       if (typeof window.naver === "undefined") {
         console.error("네이버 지도 API가 로드되지 않았습니다.");
         return;
@@ -439,24 +451,34 @@ export default function Home() {
       const newMap = new window.naver.maps.Map("map", mapOptions);
       setMap(newMap);
 
+       // 초기화 완료 후 handleCategoryApply 호출
+    newMap.addListenerOnce("idle", () => {
+      handleCategoryApply(latitude, longitude);
+    });
+
+      // 지도 초기화 후 handleCategoryApply 호출
+      // window.naver.maps.Event.addListenerOnce(newMap, "init", () => {
+      //   handleCategoryApply(latitude, longitude);
+      // });
+
       new window.naver.maps.Marker({
         position: new window.naver.maps.LatLng(latitude, longitude),
         map: newMap,
       });
 
-      handleCategoryApply(latitude, longitude);
+      // handleCategoryApply(latitude, longitude);
 
-      // 지도 이동 시 마커 업데이트
-      window.naver.maps.Event.addListener(newMap, "bounds_changed", () => {
-        // console.log("bounds_changed 이벤트 트리거");
+      // // 지도 이동 시 마커 업데이트
+      // window.naver.maps.Event.addListener(newMap, "bounds_changed", () => {
+      //   // console.log("bounds_changed 이벤트 트리거");
 
-        const center = newMap.getCenter();
-        const latitude = center.lat();
-        const longitude = center.lng();
+      //   const center = newMap.getCenter();
+      //   const latitude = center.lat();
+      //   const longitude = center.lng();
 
-        // handleCategoryApply 호출
-        handleCategoryApply(latitude, longitude);
-      });
+      //   // handleCategoryApply 호출
+      //   handleCategoryApply(latitude, longitude);
+      // });
     };
 
     const loadMapWithCurrentLocation = () => {
