@@ -2,9 +2,9 @@
 
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { useCallback } from "react";
 import { axios } from "@/lib/axios";
 import Footer from "../components/Footer";
+import { debounce } from "lodash";
 
 export default function Home() {
   const router = useRouter();
@@ -99,6 +99,14 @@ export default function Home() {
     selectedTab === "체육 강좌" ? lectureCategories : facilityCategories;
 
   const [map, setMap] = useState<any>(null);
+  const [markers, setMarkers] = useState<any[]>([]);
+
+  // 마커 제거 함수
+  const clearMarkers = () => {
+    markers.forEach((marker) => marker.setMap(null)); // 지도에서 제거
+    setMarkers([]); // 상태 초기화
+  };
+
   const [searchActive, setSearchActive] = useState(false);
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [recentSearches, setRecentSearches] = useState<string[]>([]); // 최근 검색어
@@ -150,7 +158,7 @@ export default function Home() {
     골프: "GOLF",
     볼링: "BOWLING",
     당구: "BILLIARDS",
-    클라이밍: "CLIIMBING",
+    클라이밍: "CLIMBING",
     롤러라인: "ROLLER_SKATING",
     빙상: "ICE_SKATING",
     기타종목: "ETC",
@@ -198,7 +206,6 @@ export default function Home() {
           category: mappedCategories,
         },
       });
-      // console.log("API 응답 데이터:", response.data);
 
       if (response.data.isSuccess) {
         return response.data.results.placeList;
@@ -227,16 +234,15 @@ export default function Home() {
     }
   };
 
-  const handleCategoryApply = async (latitude?: number, longitude?: number) => {
+  const handleCategoryApply = async () => {
     if (!map) return;
 
-    // console.log("handleCategoryApply 호출됨:", { latitude, longitude }); // 디버그 로그
+    // 기존 마커를 제거
     clearMarkers();
 
     const center = map.getCenter();
-    const lat = latitude || center.lat();
-    const lng = longitude || center.lng();
-
+    const latitude = center.lat();
+    const longitude = center.lng();
     const radius =
       selectedDistance === "제한 없음"
         ? 3000
@@ -247,45 +253,67 @@ export default function Home() {
         ? selectedLectureCategories
         : selectedFacilityCategories;
 
-    // 기존 마커 삭제
-    clearMarkers();
+    try {
+      const places = await fetchPlaces(
+        latitude,
+        longitude,
+        radius,
+        categoriesToSend
+      );
 
-    const places = await fetchPlaces(lat, lng, radius, categoriesToSend);
+      const newMarkers = places.map(
+        (place: {
+          category: string;
+          latitude: number;
+          longitude: number;
+          placeId: number;
+        }) => {
+          const markerImage = `/${place.category.toLowerCase()}.png?v=${Date.now()}`;
+          const marker = new window.naver.maps.Marker({
+            position: new window.naver.maps.LatLng(
+              place.latitude,
+              place.longitude
+            ),
+            map,
+            icon: {
+              url: markerImage,
+              size: new window.naver.maps.Size(48, 48),
+              scaledSize: new window.naver.maps.Size(48, 48),
+            },
+          });
 
-    const newMarkers = places.map(
-      (place: {
-        category: string;
-        latitude: any;
-        longitude: any;
-        placeId: number;
-      }) => {
-        const markerImage = `/${place.category.toLowerCase()}.png?v=${Date.now()}`;
-        const marker = new window.naver.maps.Marker({
-          position: new window.naver.maps.LatLng(
-            place.latitude,
-            place.longitude
-          ),
-          map,
-          icon: {
-            content: `<div style="
-              width: 48px;
-              height: 48px;
-              background: url('${markerImage}') no-repeat center center;
-              background-size: contain;
-              box-shadow: none; 
-              filter: none; 
-            "></div>`,
-            anchor: new window.naver.maps.Point(24, 48),
-          },
-        });
+          marker.addListener("click", () => handleMarkerClick(place.placeId));
+          return marker;
+        }
+      );
 
-        marker.addListener("click", () => handleMarkerClick(place.placeId));
-        return marker;
-      }
-    );
-
-    setMarkers(newMarkers);
+      setMarkers(newMarkers); // 새로운 마커로 상태 업데이트
+    } catch (error) {
+      console.error("마커 생성 중 오류:", error);
+    }
   };
+
+  useEffect(() => {
+    if (map) {
+      const debouncedApply = debounce(async () => {
+        // 기존 마커를 지우고 새로운 마커를 적용
+        clearMarkers();
+        await handleCategoryApply();
+      }, 300);
+
+      const listener = window.naver.maps.Event.addListener(
+        map,
+        "bounds_changed",
+        debouncedApply
+      );
+
+      return () => {
+        // 컴포넌트 언마운트 시 이벤트 제거
+        window.naver.maps.Event.removeListener(listener);
+        debouncedApply.cancel();
+      };
+    }
+  }, [map, selectedTab, selectedLectureCategories, selectedFacilityCategories]);
 
   const [searchInput, setSearchInput] = useState("");
   const [currentPage, setCurrentPage] = useState(0);
@@ -303,46 +331,24 @@ export default function Home() {
 
   const [selectedDistance, setSelectedDistance] = useState<string>("제한 없음");
   const distanceOptions = ["500m", "1km", "2km", "5km", "10km", "제한 없음"];
-  const [markers, setMarkers] = useState<any[]>([]);
 
   useEffect(() => {
     if (map) {
-      // 초기 로딩 시 마커 표시
-      const center = map.getCenter();
-      handleCategoryApply(center.lat(), center.lng());
-  
-      // 지도 이동 시 마커 업데이트
-      const onBoundsChanged = () => {
-        const newCenter = map.getCenter();
-        const newLatitude = newCenter.lat();
-        const newLongitude = newCenter.lng();
-        handleCategoryApply(newLatitude, newLongitude);
-      };
-  
-      // 지도 이동 시 마커 업데이트를 위한 이벤트 리스너 등록
-      const listener = window.naver.maps.Event.addListener(map, "bounds_changed", onBoundsChanged);
-  
-      // 컴포넌트 언마운트 시 이벤트 리스너 제거
-      return () => {
-        window.naver.maps.Event.removeListener(listener);
-      };
+      handleCategoryApply(); // 지도 상태 변경에 따른 초기 마커 적용
     }
-  }, [map]);
-  
+  }, [map, selectedTab, selectedLectureCategories, selectedFacilityCategories]);
+
+  // useEffect(() => {
+  //   if (map) {
+  //     window.naver.maps.Event.addListener(map, "bounds_changed", () => {
+  //       handleCategoryApply();
+  //     });
+  //   }
+  // }, [map]);
 
   useEffect(() => {
     clearMarkers();
   }, [selectedTab]);
-
-  const clearMarkers = () => {
-    if (!markers || markers.length === 0) return;
-
-    // 기존 모든 마커 제거
-    markers.forEach((marker) => marker.setMap(null));
-
-    // 상태 초기화
-    setMarkers([]);
-  };
 
   const getKoreanCategory = (englishCategory: string): string => {
     const entry = Object.entries(categoryMap).find(
@@ -451,49 +457,27 @@ export default function Home() {
       const newMap = new window.naver.maps.Map("map", mapOptions);
       setMap(newMap);
 
-       // 초기화 완료 후 handleCategoryApply 호출
-    newMap.addListenerOnce("idle", () => {
-      handleCategoryApply(latitude, longitude);
-    });
-
-      // 지도 초기화 후 handleCategoryApply 호출
-      // window.naver.maps.Event.addListenerOnce(newMap, "init", () => {
-      //   handleCategoryApply(latitude, longitude);
+      // new window.naver.maps.Marker({
+      //   position: new window.naver.maps.LatLng(latitude, longitude),
+      //   map: newMap,
       // });
 
-      new window.naver.maps.Marker({
-        position: new window.naver.maps.LatLng(latitude, longitude),
-        map: newMap,
+      window.naver.maps.Event.addListener(newMap, "bounds_changed", () => {
+        handleCategoryApply();
       });
+    };
 
-      // handleCategoryApply(latitude, longitude);
-
-      // // 지도 이동 시 마커 업데이트
-      // window.naver.maps.Event.addListener(newMap, "bounds_changed", () => {
-      //   // console.log("bounds_changed 이벤트 트리거");
-
-      //   const center = newMap.getCenter();
-      //   const latitude = center.lat();
-      //   const longitude = center.lng();
-
-      //   // handleCategoryApply 호출
-      //   handleCategoryApply(latitude, longitude);
-      // });
+    const handleLocationError = (error: GeolocationPositionError) => {
+      console.error("위치 정보를 가져오는 데 실패했습니다:", error);
+      initMap(37.5665, 126.978);
     };
 
     const loadMapWithCurrentLocation = () => {
       if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          (position) => {
-            const { latitude, longitude } = position.coords;
-            // console.log("현재 위치 정보:", { latitude, longitude }); // 디버그 로그
-            initMap(latitude, longitude);
-          },
-          (error) => {
-            console.error("위치 정보 가져오기 실패:", error);
-            initMap(37.5665, 126.978); // 기본 좌표로 초기화
-          }
-        );
+        navigator.geolocation.getCurrentPosition((position) => {
+          const { latitude, longitude } = position.coords;
+          initMap(latitude, longitude);
+        }, handleLocationError);
       } else {
         console.warn("Geolocation을 사용할 수 없습니다.");
         initMap(37.5665, 126.978);
