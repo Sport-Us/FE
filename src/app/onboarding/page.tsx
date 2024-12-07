@@ -22,11 +22,11 @@ export default function OnboardingPage() {
     const refreshToken = window.localStorage.getItem("refreshToken");
   
    // 1. 토큰이 없는 경우 로그인 페이지로 이동
-   if (!accessToken || !refreshToken) {
-    console.error("토큰이 유효하지 않습니다. 로그인 화면으로 이동합니다.");
-    router.push("/login");
-    return;
-  }
+  // if (!accessToken || !refreshToken) {
+  //   console.error("토큰이 유효하지 않습니다. 로그인 화면으로 이동합니다.");
+  //   router.push("/login");
+  //   return;
+  // }
 
   // 2. URL에 토큰 파라미터가 있는 경우 소셜 로그인 처리
   const urlParams = new URLSearchParams(window.location.search);
@@ -38,6 +38,7 @@ export default function OnboardingPage() {
       localStorage.setItem("accessToken", accessTokenParam);
       localStorage.setItem("refreshToken", refreshTokenParam);
       console.log("소셜 로그인 토큰 저장 완료.");
+
     } catch (error) {
       console.error("소셜 로그인 토큰 저장 중 오류:", error);
       router.push("/login");

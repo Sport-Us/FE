@@ -18,7 +18,7 @@ export default function AuthCallback() {
 
       const accessToken = urlParams.get("accessToken");
       const refreshToken = urlParams.get("refreshToken");
-      const isOnboarded = urlParams.get("isOnboarded") === "true"; // 온보딩 여부 확인
+      const isOnboarded = urlParams.get("isOnboarded") === "true";
 
       if (accessToken && refreshToken) {
         try {
