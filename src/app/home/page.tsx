@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
+import { useCallback } from "react";
 import { axios } from "@/lib/axios";
 import Footer from "../components/Footer";
 
@@ -149,7 +150,7 @@ export default function Home() {
     골프: "GOLF",
     볼링: "BOWLING",
     당구: "BILLIARDS",
-    클라이밍: "CLIMBING",
+    클라이밍: "CLIIMBING",
     롤러라인: "ROLLER_SKATING",
     빙상: "ICE_SKATING",
     기타종목: "ETC",
@@ -197,6 +198,7 @@ export default function Home() {
           category: mappedCategories,
         },
       });
+      // console.log("API 응답 데이터:", response.data);
 
       if (response.data.isSuccess) {
         return response.data.results.placeList;
@@ -225,12 +227,15 @@ export default function Home() {
     }
   };
 
-  const handleCategoryApply = async () => {
+  const handleCategoryApply = async (latitude?: number, longitude?: number) => {
     if (!map) return;
 
+    // console.log("handleCategoryApply 호출됨:", { latitude, longitude }); // 디버그 로그
+
     const center = map.getCenter();
-    const latitude = center.lat();
-    const longitude = center.lng();
+    const lat = latitude || center.lat();
+    const lng = longitude || center.lng();
+
     const radius =
       selectedDistance === "제한 없음"
         ? 3000
@@ -241,12 +246,7 @@ export default function Home() {
         ? selectedLectureCategories
         : selectedFacilityCategories;
 
-    const places = await fetchPlaces(
-      latitude,
-      longitude,
-      radius,
-      categoriesToSend
-    );
+    const places = await fetchPlaces(lat, lng, radius, categoriesToSend);
 
     clearMarkers();
     const newMarkers = places.map(
@@ -264,9 +264,15 @@ export default function Home() {
           ),
           map,
           icon: {
-            url: markerImage,
-            size: new window.naver.maps.Size(48, 48),
-            scaledSize: new window.naver.maps.Size(48, 48),
+            content: `<div style="
+              width: 48px;
+              height: 48px;
+              background: url('${markerImage}') no-repeat center center;
+              background-size: contain;
+              box-shadow: none; 
+              filter: none; 
+            "></div>`,
+            anchor: new window.naver.maps.Point(24, 48),
           },
         });
 
@@ -277,8 +283,6 @@ export default function Home() {
 
     setMarkers(newMarkers);
   };
-
-
 
   const [searchInput, setSearchInput] = useState("");
   const [currentPage, setCurrentPage] = useState(0);
@@ -300,9 +304,16 @@ export default function Home() {
 
   useEffect(() => {
     if (map) {
-      handleCategoryApply();
+      window.naver.maps.Event.addListener(map, "bounds_changed", () => {
+        const center = map.getCenter();
+        const latitude = center.lat();
+        const longitude = center.lng();
+        // console.log("지도 이동 감지: 새 좌표", latitude, longitude); // 디버그 로그
+
+        handleCategoryApply(latitude, longitude);
+      });
     }
-  }, [map]);
+  }, [map, handleCategoryApply]);
 
   useEffect(() => {
     clearMarkers();
@@ -312,11 +323,6 @@ export default function Home() {
     markers.forEach((marker) => marker.setMap(null));
     setMarkers([]);
   };
-
-
-
-
-  
 
   const getKoreanCategory = (englishCategory: string): string => {
     const entry = Object.entries(categoryMap).find(
@@ -386,7 +392,7 @@ export default function Home() {
 
   useEffect(() => {
     if (searchInput.trim()) {
-      fetchSearchResults(true); 
+      fetchSearchResults(true);
     }
   }, [
     selectedTab,
@@ -412,6 +418,14 @@ export default function Home() {
 
   useEffect(() => {
     const initMap = (latitude: number, longitude: number) => {
+      //console.log("initMap 호출됨", { latitude, longitude }); // 디버그 로그
+
+      // if (!window.naver) {
+      //   //console.error("네이버 지도 API가 로드되지 않았습니다.");
+      // } else {
+      //   console.log("네이버 지도 API 로드 성공");
+      // }
+
       if (typeof window.naver === "undefined") {
         console.error("네이버 지도 API가 로드되지 않았습니다.");
         return;
@@ -430,22 +444,34 @@ export default function Home() {
         map: newMap,
       });
 
-      window.naver.maps.Event.addListener(newMap, "bounds_changed", () => {
-        handleCategoryApply();
-      });
-    };
+      handleCategoryApply(latitude, longitude);
 
-    const handleLocationError = (error: GeolocationPositionError) => {
-      console.error("위치 정보를 가져오는 데 실패했습니다:", error);
-      initMap(37.5665, 126.978);
+      // 지도 이동 시 마커 업데이트
+      window.naver.maps.Event.addListener(newMap, "bounds_changed", () => {
+        // console.log("bounds_changed 이벤트 트리거");
+
+        const center = newMap.getCenter();
+        const latitude = center.lat();
+        const longitude = center.lng();
+
+        // handleCategoryApply 호출
+        handleCategoryApply(latitude, longitude);
+      });
     };
 
     const loadMapWithCurrentLocation = () => {
       if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition((position) => {
-          const { latitude, longitude } = position.coords;
-          initMap(latitude, longitude);
-        }, handleLocationError);
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const { latitude, longitude } = position.coords;
+            // console.log("현재 위치 정보:", { latitude, longitude }); // 디버그 로그
+            initMap(latitude, longitude);
+          },
+          (error) => {
+            console.error("위치 정보 가져오기 실패:", error);
+            initMap(37.5665, 126.978); // 기본 좌표로 초기화
+          }
+        );
       } else {
         console.warn("Geolocation을 사용할 수 없습니다.");
         initMap(37.5665, 126.978);
