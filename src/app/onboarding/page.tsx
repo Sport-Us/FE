@@ -18,32 +18,61 @@ export default function OnboardingPage() {
   });
 
   useEffect(() => {
-    const handleTokenExtraction = () => {
-      if (typeof window === "undefined") {
-        console.error("브라우저 환경이 아닙니다.");
-        return;
-      }
+    const accessToken = window.localStorage.getItem("accessToken");
+    const refreshToken = window.localStorage.getItem("refreshToken");
+  
+   // 1. 토큰이 없는 경우 로그인 페이지로 이동
+   if (!accessToken || !refreshToken) {
+    console.error("토큰이 유효하지 않습니다. 로그인 화면으로 이동합니다.");
+    router.push("/login");
+    return;
+  }
 
-      const urlParams = new URLSearchParams(window.location.search);
-      const accessToken = urlParams.get("accessToken");
-      const refreshToken = urlParams.get("refreshToken");
+  // 2. URL에 토큰 파라미터가 있는 경우 소셜 로그인 처리
+  const urlParams = new URLSearchParams(window.location.search);
+  const accessTokenParam = urlParams.get("accessToken");
+  const refreshTokenParam = urlParams.get("refreshToken");
 
-      if (accessToken && refreshToken) {
-        try {
-          localStorage.setItem("accessToken", accessToken);
-          localStorage.setItem("refreshToken", refreshToken);
+  if (accessTokenParam && refreshTokenParam) {
+    try {
+      localStorage.setItem("accessToken", accessTokenParam);
+      localStorage.setItem("refreshToken", refreshTokenParam);
+      console.log("소셜 로그인 토큰 저장 완료.");
+    } catch (error) {
+      console.error("소셜 로그인 토큰 저장 중 오류:", error);
+      router.push("/login");
+    }
+  }
+}, [router]);
+  
 
-        } catch (error) {
-          console.error("로컬 스토리지 저장 중 오류:", error);
-        }
-      } else {
-        console.error("accessToken이 없습니다.");
-        router.push("/login");
-      }
-    };
+  // useEffect(() => {
+  //   const handleTokenExtraction = () => {
+  //     if (typeof window === "undefined") {
+  //       console.error("브라우저 환경이 아닙니다.");
+  //       return;
+  //     }
 
-    handleTokenExtraction();
-  }, [router]);
+  //     const urlParams = new URLSearchParams(window.location.search);
+  //     const accessToken = urlParams.get("accessToken");
+  //     const refreshToken = urlParams.get("refreshToken");
+
+  //     if (accessToken && refreshToken) {
+  //       try {
+  //         localStorage.setItem("accessToken", accessToken);
+  //         localStorage.setItem("refreshToken", refreshToken);
+
+  //       } catch (error) {
+  //         console.error("로컬 스토리지 저장 중 오류:", error);
+  //       }
+  //     } else {
+  //       console.error("accessToken이 없습니다.");
+  //       router.push("/login");
+  //     }
+  //   };
+
+  //   handleTokenExtraction();
+  // }, [router]);
 
   const handleNext = (
     type: "INTEREST" | "PREFERENCE" | "PURPOSE",
