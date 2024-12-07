@@ -25,7 +25,7 @@ export default function ContentDetail({ params }: ContentDetailProps) {
   useEffect(() => {
     const fetchCardNewsImages = async () => {
       try {
-        const resolvedParams = await params; // Promise 처리
+        const resolvedParams = await params; 
         if (!resolvedParams?.id) {
           throw new Error("Content ID is missing.");
         }
@@ -65,16 +65,23 @@ export default function ContentDetail({ params }: ContentDetailProps) {
       <Header title={contentTitle} showBackButton={true} />
 
       <div className="flex flex-col w-[343px] items-start gap-4 mt-4">
-        {images.map((image, index) => (
-          <div key={index} className="w-full h-[200px]">
-            <img
-              src={image.cardImageUrl}
-              alt={`Image ${index + 1}`}
-              className="w-full h-full object-cover"
-            />
-          </div>
-        ))}
-      </div>
+  {images.map((image, index) => (
+    <div key={index} className="w-full">
+      <img
+        src={image.cardImageUrl}
+        alt={`Image ${index + 1}`}
+        className="w-full object-contain"
+        style={{
+          maxWidth: "100%",
+          height: "auto",
+        }}
+      />
+    </div>
+  ))}
+  <div style={{ height: "50px" }}></div>
+</div>
+
+
 
       <Footer />
     </div>

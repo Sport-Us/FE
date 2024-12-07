@@ -71,35 +71,39 @@ export default function Content() {
 
   return (
     <div className="flex flex-col items-center w-full h-screen bg-white">
-      <Header title="콘텐츠" showBackButton={false} />
+  <Header title="콘텐츠" showBackButton={false} />
 
-      <div className="flex flex-col w-[343px] items-start gap-[12px] mt-4">
-        {contentItems.map((item) => (
-          <Link
-            key={item.id}
-            href={{
-              pathname: `/content/${item.id}`,
-              query: { title: item.title },
-            }}
-          >
-            <div className="flex items-center gap-[12px] w-full cursor-pointer">
-              <img
-                src={item.imageUrl}
-                alt={item.title}
-                className="w-[70px] h-[70px] bg-gray-300 object-cover flex-shrink-0"
-              />
-              <span
-                className="text-black font-semibold text-[14px] leading-[21px]"
-                style={{ fontFamily: "Inter" }}
-              >
-                {item.title}
-              </span>
-            </div>
-          </Link>
-        ))}
-      </div>
-
-      <Footer />
+  <div className="flex-1 w-full overflow-y-auto pb-[72px]">
+    <div className="flex flex-col w-[343px] mx-auto items-start gap-[12px] mt-4">
+      {contentItems.map((item) => (
+        <Link
+          key={item.id}
+          href={{
+            pathname: `/content/${item.id}`,
+            query: { title: item.title },
+          }}
+        >
+          <div className="flex items-center gap-[12px] w-full cursor-pointer">
+            <img
+              src={item.imageUrl}
+              alt={item.title}
+              className="w-[70px] h-[70px] bg-gray-300 object-cover flex-shrink-0"
+            />
+            <span
+              className="text-black font-semibold text-[14px] leading-[21px]"
+              style={{ fontFamily: "Inter" }}
+            >
+              {item.title}
+            </span>
+          </div>
+        </Link>
+      ))}
     </div>
+  </div>
+
+  <Footer />
+</div>
+
+
   );
 }
