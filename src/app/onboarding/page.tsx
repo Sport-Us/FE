@@ -124,11 +124,8 @@ export default function OnboardingPage() {
           onNext={(selectedItems) => handleNext("PREFERENCE", selectedItems)}
         />
       )}
-      {step === 3 && (
-        <Step3
-          onNext={(selectedItems) => handleNext("PURPOSE", selectedItems)}
-        />
-      )}
+           {step === 3 && <Step3 onSubmit={handleSubmit} />} {/* 변경된 부분 */}
+
     </div>
   );
 }

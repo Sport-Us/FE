@@ -1,14 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 
 interface Step3Props {
-  onNext: (selectedItems: string[]) => void;
+  onSubmit: () => void; 
 }
 
-export default function Step2({ onNext }: Step3Props) {
-  const router = useRouter();
+export default function Step3({ onSubmit }: Step3Props) {
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
 
   const items = [
@@ -26,10 +24,6 @@ export default function Step2({ onNext }: Step3Props) {
         ? prevSelectedItems.filter((selectedItem) => selectedItem !== item)
         : [...prevSelectedItems, item]
     );
-  };
-
-  const handleStartClick = () => {
-    router.push("/home");
   };
 
   return (
@@ -91,7 +85,7 @@ export default function Step2({ onNext }: Step3Props) {
         </div>
 
         <button
-          onClick={handleStartClick}
+          onClick={onSubmit}
           className="flex justify-center items-center w-[343px] h-[50px] rounded-[10px] text-[14px] font-semibold leading-[21px] bg-[#0187BA] text-white"
         >
           시작하기
