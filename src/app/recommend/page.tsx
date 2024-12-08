@@ -213,24 +213,32 @@ export default function RecommendPage() {
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
+        console.log("Observer triggered:", entries[0].isIntersecting);
         if (entries[0].isIntersecting && hasNext) {
-          fetchRecommendations();
+          if (selectedTab === "강좌 추천") {
+            console.log("Fetching recommendations...");
+            fetchRecommendations();
+          } else {
+            console.log("Fetching additional data...");
+            fetchAdditionalData();
+          }
         }
       },
       {
         threshold: 0.5,
-        rootMargin: "100px", // 감지 범위 조정
+        rootMargin: "100px",
       }
     );
-
+  
     if (loaderRef.current) {
       observer.observe(loaderRef.current);
     }
-
+  
     return () => {
       if (loaderRef.current) observer.unobserve(loaderRef.current);
     };
-  }, [loaderRef.current, hasNext, latitude, longitude]);
+  }, [loaderRef.current, hasNext, latitude, longitude, selectedTab]);
+  
 
   useEffect(() => {
     fetchLocation();
