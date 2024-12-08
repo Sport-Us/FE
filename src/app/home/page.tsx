@@ -101,9 +101,10 @@ export default function Home() {
   const [map, setMap] = useState<any>(null);
   const [markers, setMarkers] = useState<any[]>([]);
 
-  // 마커 제거 함수
   const clearMarkers = () => {
-    markers.forEach((marker) => marker.setMap(null)); // 지도에서 제거
+    markers.forEach((marker) => {
+      if (marker) marker.setMap(null); // 지도에서 제거
+    });
     setMarkers([]); // 상태 초기화
   };
 
@@ -287,7 +288,10 @@ export default function Home() {
         }
       );
 
-      setMarkers(newMarkers); // 새로운 마커로 상태 업데이트
+      setMarkers((prevMarkers) => {
+        prevMarkers.forEach((marker) => marker.setMap(null)); // 이전 마커 제거
+        return newMarkers;
+      });
     } catch (error) {
       console.error("마커 생성 중 오류:", error);
     }
@@ -295,25 +299,42 @@ export default function Home() {
 
   useEffect(() => {
     if (map) {
-      const debouncedApply = debounce(async () => {
-        // 기존 마커를 지우고 새로운 마커를 적용
-        clearMarkers();
-        await handleCategoryApply();
+      // 지도의 경계가 변경될 때 실행될 함수
+      const handleBoundsChanged = debounce(async () => {
+        clearMarkers(); // 기존 마커 제거
+        await handleCategoryApply(); // 새 마커 적용
       }, 300);
 
       const listener = window.naver.maps.Event.addListener(
         map,
         "bounds_changed",
-        debouncedApply
+        handleBoundsChanged
       );
 
       return () => {
         // 컴포넌트 언마운트 시 이벤트 제거
         window.naver.maps.Event.removeListener(listener);
-        debouncedApply.cancel();
+        handleBoundsChanged.cancel();
       };
     }
   }, [map, selectedTab, selectedLectureCategories, selectedFacilityCategories]);
+
+  useEffect(() => {
+    clearMarkers(); // 기존 마커 제거
+    if (map) {
+      handleCategoryApply(); // 카테고리 변경 시 새 마커 적용
+    }
+  }, [selectedTab, selectedLectureCategories, selectedFacilityCategories, map]);
+
+  useEffect(() => {
+    if (map) {
+      const initMarkers = async () => {
+        clearMarkers(); // 지도 초기화 시 기존 마커 제거
+        await handleCategoryApply(); // 새 마커 설정
+      };
+      initMarkers();
+    }
+  }, [map]);
 
   const [searchInput, setSearchInput] = useState("");
   const [currentPage, setCurrentPage] = useState(0);
@@ -331,12 +352,6 @@ export default function Home() {
 
   const [selectedDistance, setSelectedDistance] = useState<string>("제한 없음");
   const distanceOptions = ["500m", "1km", "2km", "5km", "10km", "제한 없음"];
-
-  useEffect(() => {
-    if (map) {
-      handleCategoryApply(); // 지도 상태 변경에 따른 초기 마커 적용
-    }
-  }, [map, selectedTab, selectedLectureCategories, selectedFacilityCategories]);
 
   // useEffect(() => {
   //   if (map) {
@@ -463,6 +478,8 @@ export default function Home() {
       // });
 
       window.naver.maps.Event.addListener(newMap, "bounds_changed", () => {
+        clearMarkers(); // 기존 마커 제거
+
         handleCategoryApply();
       });
     };
@@ -539,7 +556,6 @@ export default function Home() {
     console.log("Navigating to:", targetUrl); // 라우트 확인
     router.push(targetUrl);
   };
-  
 
   const handleMarkerClick = (placeId: number) => {
     router.push(`/home/${placeId}`);
