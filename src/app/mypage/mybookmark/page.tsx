@@ -58,6 +58,59 @@ const categoryMap: Record<string, string> = {
   PRIVATE: "민간시설",
 };
 
+const lectureCategories = [
+  { name: "전체", bgColor: "#F3F5F7" },
+  { name: "태권도", bgColor: "#E0F8F7" },
+  { name: "유도", bgColor: "#E0F8F7" },
+  { name: "복싱", bgColor: "#E0F8F7" },
+  { name: "주짓수", bgColor: "#E0F8F7" },
+  { name: "검도", bgColor: "#E0F8F7" },
+  { name: "합기도", bgColor: "#E0F8F7" },
+  { name: "헬스", bgColor: "#E8EAF6" },
+  { name: "요가", bgColor: "#E8EAF6" },
+  { name: "필라테스", bgColor: "#E8EAF6" },
+  { name: "크로스핏", bgColor: "#E8EAF6" },
+  { name: "에어로빅", bgColor: "#E8EAF6" },
+  { name: "댄스", bgColor: "#E8EAF6" },
+  { name: "축구", bgColor: "#E5F9EE" },
+  { name: "농구", bgColor: "#E5F9EE" },
+  { name: "배구", bgColor: "#E5F9EE" },
+  { name: "야구", bgColor: "#E5F9EE" },
+  { name: "탁구", bgColor: "#E5F9EE" },
+  { name: "스쿼시", bgColor: "#E5F9EE" },
+  { name: "배드민턴", bgColor: "#E5F9EE" },
+  { name: "테니스", bgColor: "#E5F9EE" },
+  { name: "골프", bgColor: "#E5F9EE" },
+  { name: "볼링", bgColor: "#FDE6F4" },
+  { name: "당구", bgColor: "#FDE6F4" },
+  { name: "클라이밍", bgColor: "#FDE6F4" },
+  { name: "롤러인라인", bgColor: "#FDE6F4" },
+  { name: "빙상(스케이트)", bgColor: "#FDE6F4" },
+  { name: "기타종목", bgColor: "#FDE6F4" },
+  { name: "종합체육시설", bgColor: "#FDE6F4" },
+  { name: "무용", bgColor: "#FDE6F4" },
+  { name: "줄넘기", bgColor: "#FDE6F4" },
+  { name: "펜싱", bgColor: "#FDE6F4" },
+  { name: "수영", bgColor: "#FDE6F4" },
+  { name: "승마", bgColor: "#FDE6F4" },
+];
+
+const facilityCategories = [
+  { name: "전체", bgColor: "#F3F5F7" },
+  { name: "취약계층", bgColor: "#E5F9EE" },
+  { name: "공공시설", bgColor: "#E0F8F7" },
+  { name: "학교", bgColor: "#E0F4FD" },
+  { name: "민간시설", bgColor: "#E8EAF6" },
+];
+
+const categoryColors = [...lectureCategories, ...facilityCategories].reduce(
+  (acc, cur) => {
+    acc[cur.name] = cur.bgColor; // 카테고리 이름을 키로, 색상을 값으로 설정
+    return acc;
+  },
+  {} as Record<string, string>
+);
+
 export default function BookmarkPage() {
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
   const [hasNext, setHasNext] = useState(false);
@@ -80,10 +133,12 @@ export default function BookmarkPage() {
         setBookmarks((prev) => {
           const existingIds = new Set(prev.map((b) => b.bookmarkId)); // 기존 ID를 집합으로 만듦
           const uniqueBookmarks = bookMarkList.filter(
-            (bookmark: { bookmarkId: number; }) => !existingIds.has(bookmark.bookmarkId) // 기존에 없는 ID만 추가
+            (bookmark: { bookmarkId: number }) =>
+              !existingIds.has(bookmark.bookmarkId) // 기존에 없는 ID만 추가
           );
           return [...prev, ...uniqueBookmarks];
-        });        setHasNext(hasNext);
+        });
+        setHasNext(hasNext);
 
         if (bookMarkList.length > 0) {
           lastBookmarkIdRef.current =
@@ -108,8 +163,9 @@ export default function BookmarkPage() {
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && hasNext && !isFetching) {
-          fetchBookmarks(lastBookmarkIdRef.current);
+        if (entries[0].isIntersecting && hasNext) {
+          const lastBookmarkId = bookmarks[bookmarks.length - 1]?.bookmarkId || 0;
+          fetchBookmarks(lastBookmarkId);
         }
       },
       { threshold: 1.0 }
@@ -174,7 +230,8 @@ export default function BookmarkPage() {
               <div
                 className="inline-flex items-center h-[24px] px-[8px] rounded-[2px]"
                 style={{
-                  background: "#E5F9EE",
+                  background:
+                    categoryColors[categoryMap[bookmark.category]] || "#E5F9EE",
                   width: "fit-content",
                 }}
               >

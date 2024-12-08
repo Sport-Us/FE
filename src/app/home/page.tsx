@@ -190,11 +190,11 @@ export default function Home() {
     볼링: "BOWLING",
     당구: "BILLIARDS",
     클라이밍: "CLIMBING",
-    롤러라인: "ROLLER_SKATING",
-    빙상: "ICE_SKATING",
+    롤러인라인: "ROLLER_SKATING",
+    "빙상(스케이트)": "ICE_SKATING",
     기타종목: "ETC",
     종합체육시설: "COMPREHENSIVE",
-    "무용(발레 등)": "BALLET",
+    무용: "BALLET",
     줄넘기: "JUMPING_ROPE",
     펜싱: "PENCING",
     수영: "SWIMMING",
@@ -580,6 +580,13 @@ export default function Home() {
     router.push(targetUrl);
   };
 
+  const handleRecentSearchClick = (searchTerm: string) => {
+    setSearchInput(searchTerm); // 검색창에 최근 검색어 입력
+    setSearchActive(true); // 검색 화면 활성화
+    addSearchToRecent(searchTerm); // 최근 검색어 갱신
+    fetchSearchResults(true); // 검색 결과 가져오기
+  };
+
   const handleMarkerClick = (placeId: number) => {
     router.push(`/home/${placeId}`);
   };
@@ -626,6 +633,7 @@ export default function Home() {
                 viewBox="0 0 16 16"
                 fill="none"
                 onClick={handleSearchSubmit}
+                style={{ cursor: "pointer" }}
               >
                 <g clip-path="url(#clip0_431_494)">
                   <path
@@ -889,7 +897,10 @@ export default function Home() {
                     key={index}
                     className="flex items-center justify-between py-2"
                   >
-                    <div className="flex items-center gap-[12px]">
+                    <div
+                      className="flex items-center gap-[12px] cursor-pointer" 
+                      onClick={() => handleRecentSearchClick(item)} // 클릭 이벤트
+                    >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         width="16"
@@ -945,9 +956,10 @@ export default function Home() {
                   </div>
                 ))}
               </div>
+
             )}
-          </div>
-          ;
+          </div>        <Footer />
+
         </div>
       ) : (
         <div className="absolute top-0 w-full flex flex-col items-center">
