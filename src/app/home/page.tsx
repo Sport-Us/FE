@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { axios } from "@/lib/axios";
 import Footer from "../components/Footer";
 import { debounce } from "lodash";
+import Loading from "../loading";
 
 export default function Home() {
   const router = useRouter();
@@ -114,6 +115,34 @@ export default function Home() {
   const mapRef = useRef<any>(null);
 
   useEffect(() => {
+    if (!map) return;
+  
+    const initMarkers = async () => {
+      clearMarkers(); // 기존 마커 제거
+      await handleCategoryApply(); // 새 마커 설정
+    };
+  
+    const handleBoundsChanged = debounce(async () => {
+      clearMarkers(); // 기존 마커 제거
+      await handleCategoryApply(); // 새 마커 적용
+    }, 300);
+  
+    initMarkers();
+  
+    const listener = window.naver.maps.Event.addListener(
+      map,
+      "bounds_changed",
+      handleBoundsChanged
+    );
+  
+    return () => {
+      // 컴포넌트 언마운트 시 이벤트 제거
+      window.naver.maps.Event.removeListener(listener);
+      handleBoundsChanged.cancel();
+    };
+  }, [map, selectedTab, selectedLectureCategories, selectedFacilityCategories]);
+  
+  useEffect(() => {
     // 로컬 스토리지에서 최근 검색어 가져오기
     const storedSearches = localStorage.getItem("recentSearches");
     if (storedSearches) {
@@ -175,6 +204,7 @@ export default function Home() {
     학교: "SCHOOL",
     민간시설: "PRIVATE",
   };
+
 
   const fetchPlaces = async (
     latitude: number,
@@ -297,44 +327,13 @@ export default function Home() {
     }
   };
 
-  useEffect(() => {
-    if (map) {
-      // 지도의 경계가 변경될 때 실행될 함수
-      const handleBoundsChanged = debounce(async () => {
-        clearMarkers(); // 기존 마커 제거
-        await handleCategoryApply(); // 새 마커 적용
-      }, 300);
+  
+  // useEffect(() => {
+  //   clearMarkers();
+  // }, [selectedTab]);
 
-      const listener = window.naver.maps.Event.addListener(
-        map,
-        "bounds_changed",
-        handleBoundsChanged
-      );
+  
 
-      return () => {
-        // 컴포넌트 언마운트 시 이벤트 제거
-        window.naver.maps.Event.removeListener(listener);
-        handleBoundsChanged.cancel();
-      };
-    }
-  }, [map, selectedTab, selectedLectureCategories, selectedFacilityCategories]);
-
-  useEffect(() => {
-    clearMarkers(); // 기존 마커 제거
-    if (map) {
-      handleCategoryApply(); // 카테고리 변경 시 새 마커 적용
-    }
-  }, [selectedTab, selectedLectureCategories, selectedFacilityCategories, map]);
-
-  useEffect(() => {
-    if (map) {
-      const initMarkers = async () => {
-        clearMarkers(); // 지도 초기화 시 기존 마커 제거
-        await handleCategoryApply(); // 새 마커 설정
-      };
-      initMarkers();
-    }
-  }, [map]);
 
   const [searchInput, setSearchInput] = useState("");
   const [currentPage, setCurrentPage] = useState(0);
@@ -353,17 +352,6 @@ export default function Home() {
   const [selectedDistance, setSelectedDistance] = useState<string>("제한 없음");
   const distanceOptions = ["500m", "1km", "2km", "5km", "10km", "제한 없음"];
 
-  // useEffect(() => {
-  //   if (map) {
-  //     window.naver.maps.Event.addListener(map, "bounds_changed", () => {
-  //       handleCategoryApply();
-  //     });
-  //   }
-  // }, [map]);
-
-  useEffect(() => {
-    clearMarkers();
-  }, [selectedTab]);
 
   const getKoreanCategory = (englishCategory: string): string => {
     const entry = Object.entries(categoryMap).find(
@@ -443,12 +431,16 @@ export default function Home() {
     selectedDistance,
   ]);
 
-  const handleTabChange = (newTab: "체육 강좌" | "체육 시설") => {
+  const handleTabChange = async (newTab: "체육 강좌" | "체육 시설") => {
     if (newTab !== selectedTab) {
-      setSelectedTab(newTab); // 상태 변경
-      setSearchResults([]); // 검색 결과 초기화
-      setHasNextPage(true); // 페이지네이션 초기화
-      setCurrentPage(0); // 페이지 초기화
+      setSearchLoading(true); // 로딩 시작
+      setSelectedTab(newTab);
+      setSearchResults([]); // 기존 결과 초기화
+
+      // 탭 전환 시 데이터 로드 (예제: 1초 지연)
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      setSearchLoading(false); // 로딩 종료
     }
   };
 
@@ -526,25 +518,14 @@ export default function Home() {
   const handleSearchInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value;
     setSearchInput(query);
-
-    if (query.trim()) {
-      // const filteredResults = allResults.filter(
-      //   (result) =>
-      //     result.name.includes(query) || result.category.includes(query)
-      // );
-      // setSearchResults(filteredResults);
-      fetchSearchResults(true);
-    } else {
-      setSearchResults([]);
-      setHasNextPage(false);
-    }
   };
 
   const handleSearchSubmit = () => {
     if (!searchInput.trim()) return;
 
+    setSearchActive(true); // 검색 결과 화면 활성화
     addSearchToRecent(searchInput);
-    //fetchSearchResults(true);
+    fetchSearchResults(true);
   };
 
   const handleResultClick = (placeId: number) => {
@@ -567,7 +548,6 @@ export default function Home() {
         id="map"
         className="absolute top-0 left-1/2 transform -translate-x-1/2 max-w-[375px] w-full h-full"
       ></div>
-
       {searchActive ? (
         <div className="absolute top-0 left-0 w-full h-full bg-white z-50 flex flex-col items-center">
           <div className="flex items-center w-[343px] mt-6 gap-2">
@@ -595,7 +575,7 @@ export default function Home() {
                 placeholder="검색어를 입력해 주세요."
                 className="flex-1 bg-transparent text-[#8E9398] text-[14px] font-normal outline-none"
                 value={searchInput}
-                onChange={handleSearchInput}
+                onChange={handleSearchInput} // 검색어 변경만 반영
               />
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -674,7 +654,6 @@ export default function Home() {
               </div>
             </div>
           )}
-
           {distanceModalVisible && (
             <>
               <div
@@ -709,7 +688,6 @@ export default function Home() {
               </div>
             </>
           )}
-
           {filterModalVisible && (
             <>
               <div
@@ -752,7 +730,6 @@ export default function Home() {
               )}
             </>
           )}
-
           <div className="w-[343px] flex justify-end items-center mt-[18px]">
             <div className="flex items-center gap-[9px]">
               <div
@@ -804,10 +781,13 @@ export default function Home() {
               </div>
             </div>
           </div>
-
           <div className="w-[343px] mt-[7px] flex-1 overflow-y-auto pb-[80px]">
-            {searchInput ? (
-              searchResults.length > 0 ? (
+            {searchActive && searchLoading ? (
+              <div className="flex justify-center items-center h-full">
+                <Loading />
+              </div>
+            ) : searchInput.trim() ? (
+              searchResults.length > 0 ? ( // 검색 결과가 있는 경우
                 searchResults.map((result) => (
                   <div
                     key={result.id}
@@ -822,11 +802,9 @@ export default function Home() {
                         {getKoreanCategory(result.category)}
                       </span>
                     </div>
-
                     <span className="text-[var(--Black,#1A1A1B)] font-[Inter] text-[16px] font-bold leading-[24px]">
                       {result.name}
                     </span>
-
                     <div className="flex items-center gap-[4px]">
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -853,9 +831,11 @@ export default function Home() {
                   </div>
                 ))
               ) : (
-                <p className="text-gray-500 text-center">
-                  검색 결과가 없습니다.
-                </p>
+                searchInput.trim() && !searchLoading && searchResults.length === 0 && (
+                  <p className="text-gray-500 text-center">
+                    검색 결과가 없습니다.
+                  </p>
+                )
               )
             ) : (
               <div>
@@ -925,6 +905,7 @@ export default function Home() {
               </div>
             )}
           </div>
+          ;
         </div>
       ) : (
         <div className="absolute top-0 w-full flex flex-col items-center">
@@ -1091,4 +1072,4 @@ export default function Home() {
       <Footer />
     </div>
   );
-}
+} 

@@ -104,12 +104,6 @@ export default function TermsAgreement() {
             </div>
             <span className="text-[14px]">(필수) 개인정보 처리방침</span>
           </div>
-          <Link
-            href="/"
-            className="text-[#D2D3D3] text-[12px] font-normal leading-[18px] underline"
-          >
-            약관 상세보기
-          </Link>
         </div>
 
         <div className="flex items-center gap-[9px]">
@@ -135,12 +129,7 @@ export default function TermsAgreement() {
             </div>
             <span className="text-[14px]">(필수) 서비스 이용약관</span>
           </div>
-          <Link
-            href="/"
-            className="text-[#D2D3D3] text-[12px] font-normal leading-[18px] underline"
-          >
-            약관 상세보기
-          </Link>
+          
         </div>
       </div>
 

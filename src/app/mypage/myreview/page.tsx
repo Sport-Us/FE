@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation"; // next/navigation에서 useRouter를 가져옵니다.
 import Header from "@/app/components/Header";
 import { axios } from "@/lib/axios";
 import Loading from "@/app/loading";
@@ -8,6 +9,7 @@ import Loading from "@/app/loading";
 interface Review {
   reviewId: number;
   writer: string;
+  placeId: number; // placeId 필드 추가
   placeName: string;
   content: string;
   rating: number;
@@ -20,29 +22,34 @@ export default function MyReviews() {
   const [hasNext, setHasNext] = useState(false);
   const [lastReviewId, setLastReviewId] = useState(0);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   const fetchReviews = async (lastId: number) => {
     try {
       const response = await axios.get("/users/review", {
         params: { lastReviewId: lastId },
       });
-  
+
       if (response.data.isSuccess) {
         const { reviewSimpleResponseList, hasNext } = response.data.results;
-  
+
         setReviews((prev) => {
           const newReviews = reviewSimpleResponseList.filter(
-            (newReview: { reviewId: number; }) => !prev.some((prevReview) => prevReview.reviewId === newReview.reviewId)
+            (newReview: { reviewId: number }) =>
+              !prev.some(
+                (prevReview) => prevReview.reviewId === newReview.reviewId
+              )
           );
           return [...prev, ...newReviews];
         });
-  
+
         if (reviewSimpleResponseList.length > 0) {
           setLastReviewId(
-            reviewSimpleResponseList[reviewSimpleResponseList.length - 1].reviewId
+            reviewSimpleResponseList[reviewSimpleResponseList.length - 1]
+              .reviewId
           );
         }
-  
+
         setHasNext(hasNext);
       } else {
         alert("리뷰를 불러오는 데 실패했습니다.");
@@ -54,7 +61,6 @@ export default function MyReviews() {
       setLoading(false);
     }
   };
-  
 
   const handleDeleteReview = async (reviewId: number) => {
     if (!confirm("정말 삭제하시겠습니까?")) return;
@@ -73,6 +79,14 @@ export default function MyReviews() {
       console.error("리뷰 삭제 실패:", error);
       alert("리뷰 삭제 중 오류가 발생했습니다.");
     }
+  };
+
+  const handleReviewClick = (placeId: number) => {
+    if (!placeId) {
+      alert("올바르지 않은 장소 정보입니다.");
+      return;
+    }
+    router.push(`/home/${placeId}`); // 특정 장소로 라우팅
   };
 
   useEffect(() => {
@@ -129,7 +143,11 @@ export default function MyReviews() {
         <div className="p-4 space-y-6">
           {reviews.map((review) => (
             <div key={review.reviewId}>
-              <div className="flex justify-between items-center">
+              <div
+                className="flex justify-between items-center w-[320px]"
+                onClick={() => handleReviewClick(review.placeId)} // 리뷰 클릭 시 라우팅
+                style={{ cursor: "pointer" }}
+              >
                 <div>
                   <p
                     style={{
@@ -162,7 +180,10 @@ export default function MyReviews() {
                   </p>
 
                   <button
-                    onClick={() => handleDeleteReview(review.reviewId)}
+                    onClick={(e) => {
+                      e.stopPropagation(); // 클릭 이벤트 전파 방지
+                      handleDeleteReview(review.reviewId);
+                    }}
                     className="mt-1"
                     style={{
                       color: "var(--Gray-400, #8E9398)",

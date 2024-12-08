@@ -1,12 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation"; // next/navigation에서 useRouter를 가져옵니다.
 import Header from "@/app/components/Header";
 import { axios } from "@/lib/axios";
 import Loading from "@/app/loading";
 
 interface Bookmark {
   bookmarkId: number;
+  placeId: number;
   category: string;
   name: string;
   rating: number;
@@ -28,6 +30,7 @@ export default function BookmarkPage() {
   const [hasNext, setHasNext] = useState(false);
   const [lastBookmarkId, setLastBookmarkId] = useState(0);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   const fetchBookmarks = async (lastId: number) => {
     try {
@@ -72,6 +75,10 @@ export default function BookmarkPage() {
     return <Loading />;
   }
 
+  const handleBookmarkClick = (placeId: number) => {
+    router.push(`/home/${placeId}`); // 클릭 시 라우팅
+  };
+
   return (
     <div className="w-full min-h-screen bg-white flex flex-col items-center">
       <Header title="북마크" showBackButton={true} />
@@ -99,6 +106,8 @@ export default function BookmarkPage() {
             return (
               <div
                 key={bookmark.bookmarkId}
+                onClick={() => handleBookmarkClick(bookmark.placeId)} 
+
                 className="flex flex-col gap-[4px] pb-4 border-b"
                 style={{
                   padding: "12px 6px",
