@@ -530,9 +530,16 @@ export default function Home() {
     //fetchSearchResults(true);
   };
 
-  const handleResultClick = (id: string) => {
-    router.push(`/home/${id}`);
+  const handleResultClick = (placeId: number) => {
+    if (!placeId) {
+      console.error("Invalid placeId:", placeId);
+      return;
+    }
+    const targetUrl = `/home/${placeId}`;
+    console.log("Navigating to:", targetUrl); // 라우트 확인
+    router.push(targetUrl);
   };
+  
 
   const handleMarkerClick = (placeId: number) => {
     router.push(`/home/${placeId}`);
@@ -788,7 +795,7 @@ export default function Home() {
                 searchResults.map((result) => (
                   <div
                     key={result.id}
-                    onClick={() => handleResultClick(result.id)}
+                    onClick={() => handleResultClick(result.placeId)}
                     className="flex flex-col px-[6px] py-[12px] gap-[4px] border-b border-[var(--Gray-200,#E8E8E8)]"
                   >
                     <div
