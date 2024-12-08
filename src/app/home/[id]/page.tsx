@@ -8,7 +8,7 @@ import Loading from "@/app/loading";
 interface Review {
   reviewId: number;
   writer: string;
-  writerImageUrl:string;
+  writerImageUrl: string;
   content: string;
   rating: number;
   date: string;
@@ -92,6 +92,7 @@ export default function DetailPage() {
 
         setPlaceDetail({ ...data.placeDetail, category: transformedCategory });
         setReviews(data.recentReviews);
+        setIsBookmarked(data.placeDetail.isBookmarked); // 서버 데이터로 북마크 상태 초기화
       } catch (error) {
         console.error("API 호출 실패:", error);
       } finally {
@@ -322,7 +323,7 @@ export default function DetailPage() {
                         className="rounded-full"
                         style={{
                           borderRadius: "50%",
-                          width: "25px", 
+                          width: "25px",
                           height: "25px",
                         }}
                       />

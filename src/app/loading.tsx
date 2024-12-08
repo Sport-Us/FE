@@ -1,7 +1,7 @@
 'use client';
 
 interface LoadingProps {
-  message?: string;
+  message?: string | JSX.Element; 
 }
 
 export default function Loading({ message }: LoadingProps) {

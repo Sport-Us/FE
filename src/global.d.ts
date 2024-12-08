@@ -1,8 +1,9 @@
-
-export {}; 
+export {};
 
 declare global {
   interface Window {
-    naver: any; 
+    naver: any;
   }
 }
+
+declare module "react-spinners";

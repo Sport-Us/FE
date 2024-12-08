@@ -34,9 +34,15 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, content }) => {
       className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50"
       onClick={handleBackgroundClick}
     >
-      <div className="bg-white rounded-lg shadow-lg w-[90%] max-w-sm h-[38%] p-6 overflow-auto">
+      <div className="bg-white rounded-lg shadow-lg w-[90%] max-w-sm h-[30%] p-6 overflow-auto"  style={{
+          overflow: "hidden",
+        }}>
         <h2 className="text-lg font-semibold mb-5 text-center">{title}</h2>
-        <p className="text-sm text-gray-800 mb-6 whitespace-pre-line">
+        <p className="text-sm text-gray-800 mb-6 whitespace-pre-line" style={{
+            overflow: "hidden", 
+            textOverflow: "ellipsis", 
+            whiteSpace: "normal",
+          }}>
           {content}
         </p>
       </div>
@@ -169,7 +175,7 @@ export default function MyPage() {
         </div>
       </div>
 
-      <div className="flex flex-col w-full max-w-md mt-12 space-y-2">
+      <div className="flex flex-col w-[375px] max-w-md mt-12 space-y-2">
         {[
           { name: "북마크", onClick: () => router.push("/mypage/mybookmark") },
           { name: "내 리뷰", onClick: () => router.push("/mypage/myreview") },
@@ -212,7 +218,7 @@ export default function MyPage() {
         ))}
       </div>
 
-      <div className="flex justify-between w-full max-w-md px-4 mt-[15px] text-gray-400">
+      <div className="flex justify-between w-[375px] max-w-md px-4 mt-[15px] text-gray-400">
         <span
           className="text-[12px] leading-[18px]"
           style={{ fontFamily: "Inter" }}
@@ -227,33 +233,8 @@ export default function MyPage() {
         </span>
       </div>
 
-      <div
-        onClick={handleWithdrawClick}
-        className="flex justify-end items-center w-full max-w-md px-4 mt-[62px] text-gray-400"
-      >
-        <span
-          className="text-[12px] leading-[18px] mb-[2px]"
-          style={{ fontFamily: "Inter" }}
-        >
-          회원탈퇴
-        </span>
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="16"
-          height="16"
-          viewBox="0 0 16 16"
-          fill="none"
-        >
-          <path
-            d="M10.599 5.10102C10.5433 5.04523 10.4528 5.04523 10.3971 5.10102L9.89398 5.60423C9.8383 5.65992 9.83821 5.75017 9.89378 5.80597L10.8403 6.75642C10.93 6.84647 10.8662 7 10.7391 7H6.14203C6.06316 7 5.99922 7.06394 5.99922 7.14281V7.85719C5.99922 7.93606 6.06316 8 6.14203 8H10.7382C10.8654 8 10.9291 8.1538 10.8392 8.24377L9.89382 9.18939C9.8382 9.24502 9.83804 9.33514 9.89346 9.39096L10.3971 9.89827C10.4528 9.95439 10.5435 9.95455 10.5994 9.89862L12.8965 7.60097C12.9522 7.5452 12.9522 7.4548 12.8965 7.39903L10.599 5.10102ZM3.99974 4.14281C3.99974 4.06394 4.06368 4 4.14255 4H7.85589C7.93476 4 7.9987 3.93606 7.9987 3.85719V3.14281C7.9987 3.06394 7.93476 3 7.85589 3H3.99974C3.44988 3 3 3.45 3 4V11C3 11.55 3.44988 12 3.99974 12H7.85589C7.93476 12 7.9987 11.9361 7.9987 11.8572V11.1428C7.9987 11.0639 7.93476 11 7.85589 11H4.14255C4.06368 11 3.99974 10.9361 3.99974 10.8572V4.14281Z"
-            fill="#8E9398"
-          />
-        </svg>
-      </div>
-
       <Footer />
 
-      {/* 모달 추가 */}
       <Modal
         isOpen={modalInfo.isOpen}
         onClose={closeModal}

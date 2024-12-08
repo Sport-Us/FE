@@ -444,10 +444,66 @@ export default function Home() {
     }
   };
 
-  const loadMoreResults = () => {
+  const loadMoreResults = async () => {
+    // 검색 중이거나 더 이상 데이터가 없을 때 실행 안 함
     if (searchLoading || !hasNextPage) return;
-    fetchSearchResults(false);
+  
+    // 로딩 상태 시작
+    setSearchLoading(true);
+  
+    try {
+      const response = await axios.get(currentEndpoint, {
+        params: {
+          longitude: mapRef.current?.getCenter()?.lng() || 127.027619,
+          latitude: mapRef.current?.getCenter()?.lat() || 37.497942,
+          maxDistance:
+            selectedDistance === "제한 없음"
+              ? defaultMaxDistance
+              : parseInt(selectedDistance) * 1000,
+          category: currentCategory.includes("전체")
+            ? "ALL"
+            : currentCategory.map((cat) => categoryMap[cat]).join(","),
+          sortType: selectedFilter === "별점순" ? "STAR_DESC" : "DISTANCE_ASC",
+          keyword: searchInput,
+          page: currentPage, // 현재 페이지
+        },
+      });
+  
+      if (response.data.isSuccess) {
+        const { placeList, hasNext, page } = response.data.results;
+  
+        // 새로운 결과 추가
+        setSearchResults((prevResults) => [...prevResults, ...placeList]);
+        setHasNextPage(hasNext); // 다음 페이지 존재 여부 업데이트
+        setCurrentPage(page + 1); // 다음 페이지 설정
+      } else {
+        console.error("API 호출 실패:", response.data.message);
+      }
+    } catch (error) {
+      console.error("API 호출 에러:", error);
+    } finally {
+      // 로딩 상태 종료
+      setSearchLoading(false);
+    }
   };
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasNextPage && !searchLoading) {
+          loadMoreResults();
+        }
+      },
+      { threshold: 1.0 }
+    );
+  
+    const target = document.querySelector("#load-more-trigger");
+    if (target) observer.observe(target);
+  
+    return () => {
+      if (target) observer.unobserve(target);
+    };
+  }, [hasNextPage, searchLoading, currentPage]);
+  
 
   useEffect(() => {
     const initMap = (latitude: number, longitude: number) => {
@@ -782,129 +838,125 @@ export default function Home() {
             </div>
           </div>
           <div className="w-[343px] mt-[7px] flex-1 overflow-y-auto pb-[80px]">
-            {searchActive && searchLoading ? (
-              <div className="flex justify-center items-center h-full">
-                <Loading />
-              </div>
-            ) : searchInput.trim() ? (
-              searchResults.length > 0 ? ( // 검색 결과가 있는 경우
-                searchResults.map((result) => (
-                  <div
-                    key={result.id}
-                    onClick={() => handleResultClick(result.placeId)}
-                    className="flex flex-col px-[6px] py-[12px] gap-[4px] border-b border-[var(--Gray-200,#E8E8E8)]"
-                  >
-                    <div
-                      className="flex items-center justify-center h-[24px] px-[12px] gap-[2px] rounded-[2px] bg-[var(--Badge-green,#E5F9EE)]"
-                      style={{ width: "fit-content" }}
-                    >
-                      <span className="text-[12px] font-medium text-[var(--Black,#1A1A1B)]">
-                        {getKoreanCategory(result.category)}
-                      </span>
-                    </div>
-                    <span className="text-[var(--Black,#1A1A1B)] font-[Inter] text-[16px] font-bold leading-[24px]">
-                      {result.name}
-                    </span>
-                    <div className="flex items-center gap-[4px]">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="14"
-                        height="12"
-                        viewBox="0 0 14 12"
-                        fill="none"
-                      >
-                        <path
-                          d="M7.00003 10.0496L10.0448 11.8912C10.6024 12.2287 11.2847 11.7298 11.138 11.0988L10.331 7.63582L13.0236 5.3027C13.5151 4.87717 13.251 4.07011 12.6054 4.01875L9.06168 3.71794L7.67502 0.445713C7.42556 -0.148571 6.57449 -0.148571 6.32504 0.445713L4.93837 3.71061L1.39468 4.01142C0.749039 4.06278 0.484913 4.86983 0.976481 5.29536L3.6691 7.62848L2.86205 11.0915C2.71531 11.7224 3.39764 12.2213 3.95524 11.8838L7.00003 10.0496Z"
-                          fill="#FFD643"
-                        />
-                      </svg>
-                      <span className="text-[12px] text-[var(--Black,#1A1A1B)]">
-                        {result.rating}
-                      </span>
-                      <span className="text-[12px] text-[#8E9398]">
-                        ({result.reviewCount})
-                      </span>
-                    </div>
-                    <span className="text-[var(--Gray-500,#505458)] font-[Inter] text-[12px] font-semibold leading-[18px]">
-                      {result.distance}m · {result.address}
-                    </span>
-                  </div>
-                ))
-              ) : (
-                searchInput.trim() && !searchLoading && searchResults.length === 0 && (
-                  <p className="text-gray-500 text-center">
-                    검색 결과가 없습니다.
-                  </p>
-                )
-              )
-            ) : (
-              <div>
-                <h2 className="text-[#1A1A1B] font-inter font-semibold text-[14px] leading-[21px] mb-4">
-                  최근 검색어
-                </h2>
-                {recentSearches.map((item, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center justify-between py-2"
-                  >
-                    <div className="flex items-center gap-[12px]">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="16"
-                        height="17"
-                        viewBox="0 0 16 17"
-                        fill="none"
-                      >
-                        <path
-                          d="M8 4.49992V8.49992L10.6667 9.83325M14.6667 8.49992C14.6667 12.1818 11.6819 15.1666 8 15.1666C4.3181 15.1666 1.33334 12.1818 1.33334 8.49992C1.33334 4.81802 4.3181 1.83325 8 1.83325C11.6819 1.83325 14.6667 4.81802 14.6667 8.49992Z"
-                          stroke="#D2D3D3"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                      <span className="text-[#1A1A1B] font-inter text-[14px] leading-[21px]">
-                        {item}
-                      </span>
-                    </div>
-                    <button onClick={() => handleDeleteRecentSearch(item)}>
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="16"
-                        height="17"
-                        viewBox="0 0 16 17"
-                        fill="none"
-                      >
-                        <g clipPath="url(#clip0_431_669)">
-                          <path
-                            fillRule="evenodd"
-                            clipRule="evenodd"
-                            d="M3.75735 4.07597C3.95261 3.8807 4.26919 3.8807 4.46445 4.07597L12.2426 11.8541C12.4379 12.0494 12.4379 12.366 12.2426 12.5612C12.0474 12.7565 11.7308 12.7565 11.5355 12.5612L3.75735 4.78307C3.56209 4.58781 3.56209 4.27123 3.75735 4.07597Z"
-                            fill="#D2D3D3"
-                          />
-                          <path
-                            fillRule="evenodd"
-                            clipRule="evenodd"
-                            d="M12.2427 4.07597C12.4379 4.27123 12.4379 4.58781 12.2427 4.78307L4.46448 12.5612C4.26922 12.7565 3.95263 12.7565 3.75737 12.5612C3.56211 12.366 3.56211 12.0494 3.75737 11.8541L11.5355 4.07597C11.7308 3.8807 12.0474 3.8807 12.2427 4.07597Z"
-                            fill="#D2D3D3"
-                          />
-                        </g>
-                        <defs>
-                          <clipPath id="clip0_431_669">
-                            <rect
-                              width="12"
-                              height="12"
-                              fill="white"
-                              transform="translate(8 -0.166748) rotate(45)"
-                            />
-                          </clipPath>
-                        </defs>
-                      </svg>
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
+  {searchInput.trim() ? (
+    searchResults.length > 0 ? (
+      <>
+        {searchResults.map((result) => (
+          <div
+            key={result.id}
+            onClick={() => handleResultClick(result.placeId)}
+            className="flex flex-col px-[6px] py-[12px] gap-[4px] border-b border-[var(--Gray-200,#E8E8E8)]"
+          >
+            <div
+              className="flex items-center justify-center h-[24px] px-[12px] gap-[2px] rounded-[2px] bg-[var(--Badge-green,#E5F9EE)]"
+              style={{ width: "fit-content" }}
+            >
+              <span className="text-[12px] font-medium text-[var(--Black,#1A1A1B)]">
+                {getKoreanCategory(result.category)}
+              </span>
+            </div>
+            <span className="text-[var(--Black,#1A1A1B)] font-[Inter] text-[16px] font-bold leading-[24px]">
+              {result.name}
+            </span>
+            <div className="flex items-center gap-[4px]">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="14"
+                height="12"
+                viewBox="0 0 14 12"
+                fill="none"
+              >
+                <path
+                  d="M7.00003 10.0496L10.0448 11.8912C10.6024 12.2287 11.2847 11.7298 11.138 11.0988L10.331 7.63582L13.0236 5.3027C13.5151 4.87717 13.251 4.07011 12.6054 4.01875L9.06168 3.71794L7.67502 0.445713C7.42556 -0.148571 6.57449 -0.148571 6.32504 0.445713L4.93837 3.71061L1.39468 4.01142C0.749039 4.06278 0.484913 4.86983 0.976481 5.29536L3.6691 7.62848L2.86205 11.0915C2.71531 11.7224 3.39764 12.2213 3.95524 11.8838L7.00003 10.0496Z"
+                  fill="#FFD643"
+                />
+              </svg>
+              <span className="text-[12px] text-[var(--Black,#1A1A1B)]">
+                {result.rating}
+              </span>
+              <span className="text-[12px] text-[#8E9398]">
+                ({result.reviewCount})
+              </span>
+            </div>
+            <span className="text-[var(--Gray-500,#505458)] font-[Inter] text-[12px] font-semibold leading-[18px]">
+              {result.distance}m · {result.address}
+            </span>
           </div>
+        ))}
+        <div id="load-more-trigger" style={{ height: "1px", visibility: "hidden" }} />
+      </>
+    ) : (
+      <p className="text-gray-500 text-center">검색 결과가 없습니다.</p>
+    )
+  ) : (
+    <div>
+      <h2 className="text-[#1A1A1B] font-inter font-semibold text-[14px] leading-[21px] mb-4">
+        최근 검색어
+      </h2>
+      {recentSearches.map((item, index) => (
+        <div
+          key={index}
+          className="flex items-center justify-between py-2"
+        >
+          <div className="flex items-center gap-[12px]">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="17"
+              viewBox="0 0 16 17"
+              fill="none"
+            >
+              <path
+                d="M8 4.49992V8.49992L10.6667 9.83325M14.6667 8.49992C14.6667 12.1818 11.6819 15.1666 8 15.1666C4.3181 15.1666 1.33334 12.1818 1.33334 8.49992C1.33334 4.81802 4.3181 1.83325 8 1.83325C11.6819 1.83325 14.6667 4.81802 14.6667 8.49992Z"
+                stroke="#D2D3D3"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+            <span className="text-[#1A1A1B] font-inter text-[14px] leading-[21px]">
+              {item}
+            </span>
+          </div>
+          <button onClick={() => handleDeleteRecentSearch(item)}>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="17"
+              viewBox="0 0 16 17"
+              fill="none"
+            >
+              <g clipPath="url(#clip0_431_669)">
+                <path
+                  fillRule="evenodd"
+                  clipRule="evenodd"
+                  d="M3.75735 4.07597C3.95261 3.8807 4.26919 3.8807 4.46445 4.07597L12.2426 11.8541C12.4379 12.0494 12.4379 12.366 12.2426 12.5612C12.0474 12.7565 11.7308 12.7565 11.5355 12.5612L3.75735 4.78307C3.56209 4.58781 3.56209 4.27123 3.75735 4.07597Z"
+                  fill="#D2D3D3"
+                />
+                <path
+                  fillRule="evenodd"
+                  clipRule="evenodd"
+                  d="M12.2427 4.07597C12.4379 4.27123 12.4379 4.58781 12.2427 4.78307L4.46448 12.5612C4.26922 12.7565 3.95263 12.7565 3.75737 12.5612C3.56211 12.366 3.56211 12.0494 3.75737 11.8541L11.5355 4.07597C11.7308 3.8807 12.0474 3.8807 12.2427 4.07597Z"
+                  fill="#D2D3D3"
+                />
+              </g>
+              <defs>
+                <clipPath id="clip0_431_669)">
+                  <rect
+                    width="12"
+                    height="12"
+                    fill="white"
+                    transform="translate(8 -0.166748) rotate(45)"
+                  />
+                </clipPath>
+              </defs>
+            </svg>
+          </button>
+        </div>
+      ))}
+    </div>
+  )}
+</div>
+
           ;
         </div>
       ) : (

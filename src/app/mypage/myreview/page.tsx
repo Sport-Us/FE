@@ -144,7 +144,7 @@ export default function MyReviews() {
           {reviews.map((review) => (
             <div key={review.reviewId}>
               <div
-                className="flex justify-between items-center w-[320px]"
+                className="flex justify-between items-center w-[340px]"
                 onClick={() => handleReviewClick(review.placeId)} // 리뷰 클릭 시 라우팅
                 style={{ cursor: "pointer" }}
               >
