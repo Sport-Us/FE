@@ -103,6 +103,7 @@ export default function Home() {
   const [map, setMap] = useState<any>(null);
   const markersRef = useRef<any[]>([]);
   const [markers, setMarkers] = useState<any[]>([]);
+  const [infiniteScrollLoading, setInfiniteScrollLoading] = useState(false);
 
   const clearMarkers = () => {
     // 기존 마커 제거
@@ -358,6 +359,7 @@ export default function Home() {
   const [searchInput, setSearchInput] = useState("");
   const [currentPage, setCurrentPage] = useState(0);
   const [hasNextPage, setHasNextPage] = useState(true);
+  const [isSearchSubmitted, setIsSearchSubmitted] = useState(false); // 검색 버튼 클릭 여부
 
   const [searchLoading, setSearchLoading] = useState(false);
   const [filterModalVisible, setFilterModalVisible] = useState(false);
@@ -378,6 +380,19 @@ export default function Home() {
     );
     return entry ? entry[0] : "알 수 없음";
   };
+
+  useEffect(() => {
+    if (searchInput.trim()) {
+      fetchSearchResults(true);
+    }
+  }, [
+    selectedTab,
+    searchInput,
+    selectedLectureCategories,
+    selectedFacilityCategories,
+    selectedFilter,
+    selectedDistance,
+  ]);
 
   //검색
   const defaultMaxDistance = 100000;
@@ -438,37 +453,32 @@ export default function Home() {
     }
   };
 
-  useEffect(() => {
-    if (searchInput.trim()) {
-      fetchSearchResults(true);
-    }
-  }, [
-    selectedTab,
-    selectedLectureCategories,
-    selectedFacilityCategories,
-    selectedFilter,
-    selectedDistance,
-  ]);
+
+
 
   const handleTabChange = async (newTab: "체육 강좌" | "체육 시설") => {
     if (newTab !== selectedTab) {
-      setSearchLoading(true); // 로딩 시작
-      setSelectedTab(newTab);
-      setSearchResults([]); // 기존 결과 초기화
-
-      // 탭 전환 시 데이터 로드 (예제: 1초 지연)
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      setSearchLoading(false); // 로딩 종료
+      setSelectedTab(newTab); // 탭 변경
+      setSearchLoading(true);
+      setSearchResults([]); // 기존 검색 결과 초기화
+  
+      if (searchInput.trim()) {
+        // 검색어가 있을 경우 검색 실행
+        setIsSearchSubmitted(true); // 검색 상태 활성화
+        await fetchSearchResults(true);
+      }
+  
+      setSearchLoading(false);
     }
   };
+  
 
   const loadMoreResults = async () => {
     // 검색 중이거나 더 이상 데이터가 없을 때 실행 안 함
-    if (searchLoading || !hasNextPage) return;
+    if (searchLoading || !hasNextPage || infiniteScrollLoading) return;
 
     // 로딩 상태 시작
-    setSearchLoading(true);
+    setInfiniteScrollLoading(true); // 무한 스크롤 로딩 시작
 
     try {
       const response = await axios.get(currentEndpoint, {
@@ -502,13 +512,13 @@ export default function Home() {
       console.error("API 호출 에러:", error);
     } finally {
       // 로딩 상태 종료
-      setSearchLoading(false);
+      setInfiniteScrollLoading(false); // 무한 스크롤 로딩 종료
     }
   };
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && hasNextPage && !searchLoading) {
+        if (entries[0].isIntersecting && hasNextPage && !infiniteScrollLoading) {
           loadMoreResults();
         }
       },
@@ -543,9 +553,8 @@ export default function Home() {
 
       new window.naver.maps.Marker({
         position: new window.naver.maps.LatLng(latitude, longitude),
-        map: newMap, // newMap 사용
+        map: newMap, 
         icon: {
-          url: "/current-location.png", // 현위치 아이콘
           size: new window.naver.maps.Size(24, 24),
           scaledSize: new window.naver.maps.Size(24, 24),
         },
@@ -619,12 +628,25 @@ export default function Home() {
   const handleSearchInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value;
     setSearchInput(query);
+  
+    // 검색어가 비어있으면 검색 결과 초기화
+    if (!query.trim()) {
+      setSearchResults([]);
+      setIsSearchSubmitted(false); // 검색 버튼 클릭 상태 초기화
+    }
   };
+  
+  // 검색 결과를 렌더링하는 부분 수정
+  {isSearchSubmitted && searchInput.trim() && searchResults.length === 0 && (
+    <p className="text-gray-500 text-center">검색 결과가 없습니다.</p>
+  )}
+  
 
   const handleSearchSubmit = () => {
     if (!searchInput.trim()) return;
 
     setSearchActive(true);
+    setIsSearchSubmitted(true);
     addSearchToRecent(searchInput);
     fetchSearchResults(true);
   };
@@ -757,43 +779,43 @@ export default function Home() {
           {searchInput && searchResults.length > 0 && (
             <div className="w-[343px] flex flex-col items-start mt-[16px]">
               <div className="flex items-center w-[343px] h-[36px] gap-[4px] bg-[#EEE] rounded-lg">
-                <button
-                  onClick={() => handleTabChange("체육 강좌")}
-                  className={`flex items-center justify-center w-[175px] h-[36px] py-[10px] px-[16px] gap-[4px] rounded-lg ${
-                    selectedTab === "체육 강좌"
-                      ? "bg-[rgba(1,135,186,0.28)]"
-                      : "bg-transparent"
-                  }`}
-                >
-                  <span
-                    className={`text-[12px] font-bold leading-[18px] ${
-                      selectedTab === "체육 강좌"
-                        ? "text-[#000]"
-                        : "text-[rgba(0,0,0,0.60)]"
-                    }`}
-                  >
-                    체육 강좌
-                  </span>
-                </button>
-                <button
-                  onClick={() => handleTabChange("체육 시설")}
-                  className={`flex items-center justify-center w-[175px] h-[36px] py-[10px] px-[16px] gap-[4px] rounded-lg ${
-                    selectedTab === "체육 시설"
-                      ? "bg-[rgba(1,135,186,0.28)]"
-                      : "bg-transparent"
-                  }`}
-                >
-                  <span
-                    className={`text-[12px] font-bold leading-[18px] ${
-                      selectedTab === "체육 시설"
-                        ? "text-[#000]"
-                        : "text-[rgba(0,0,0,0.60)]"
-                    }`}
-                  >
-                    체육 시설
-                  </span>
-                </button>
-              </div>
+  <button
+    onClick={() => handleTabChange("체육 강좌")}
+    className={`flex items-center justify-center w-[175px] h-[36px] py-[10px] px-[16px] gap-[4px] rounded-lg ${
+      selectedTab === "체육 강좌"
+        ? "bg-[rgba(1,135,186,0.28)]"
+        : "bg-transparent"
+    }`}
+  >
+    <span
+      className={`text-[12px] font-bold leading-[18px] ${
+        selectedTab === "체육 강좌"
+          ? "text-[#000]"
+          : "text-[rgba(0,0,0,0.60)]"
+      }`}
+    >
+      체육 강좌
+    </span>
+  </button>
+  <button
+    onClick={() => handleTabChange("체육 시설")}
+    className={`flex items-center justify-center w-[175px] h-[36px] py-[10px] px-[16px] gap-[4px] rounded-lg ${
+      selectedTab === "체육 시설"
+        ? "bg-[rgba(1,135,186,0.28)]"
+        : "bg-transparent"
+    }`}
+  >
+    <span
+      className={`text-[12px] font-bold leading-[18px] ${
+        selectedTab === "체육 시설"
+          ? "text-[#000]"
+          : "text-[rgba(0,0,0,0.60)]"
+      }`}
+    >
+      체육 시설
+    </span>
+  </button>
+</div>
             </div>
           )}
           {distanceModalVisible && (
@@ -923,8 +945,15 @@ export default function Home() {
               </div>
             </div>
           </div>
-          <div className="w-[343px] mt-[7px] flex-1 overflow-y-auto pb-[80px]">
-            {searchInput.trim() ? (
+          <div className="w-[343px] mt-[7px] flex-1 overflow-y-auto hide-scrollbar pb-[80px]">
+            {isSearchSubmitted ? (
+searchLoading ? (
+  <div className="flex justify-center items-center my-4">
+    <ClipLoader size={35} color={"#0187BA"} loading={true} />
+  </div>
+) : 
+
+
               searchResults.length > 0 ? (
                 <>
                   {searchResults.map((result) => {
@@ -981,15 +1010,16 @@ export default function Home() {
                     );
                   })}
 
-                  {searchLoading && hasNextPage && (
-                    <div className="flex justify-center items-center my-4">
-                      <ClipLoader size={35} color={"#0187BA"} loading={true} />
-                    </div>
-                  )}
-                  <div
+<div id="load-more-trigger" style={{ height: "1px", visibility: "hidden" }} />
+  {infiniteScrollLoading && (
+    <div className="flex justify-center items-center my-4">
+      <ClipLoader size={35} color={"#0187BA"} loading={true} />
+    </div>
+  )}
+                  {/* <div
                     id="load-more-trigger"
                     style={{ height: "1px", visibility: "hidden" }}
-                  />
+                  /> */}
                 </>
               ) : (
                 <p className="text-gray-500 text-center">
