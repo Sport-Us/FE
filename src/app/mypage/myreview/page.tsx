@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"; // next/navigation에서 useRouter�
 import Header from "@/app/components/Header";
 import { axios } from "@/lib/axios";
 import Loading from "@/app/loading";
+import Footer from "@/app/components/Footer";
 
 interface Review {
   reviewId: number;
@@ -230,6 +231,7 @@ export default function MyReviews() {
           ))}
         </div>
       )}
+      <Footer />
     </div>
   );
 }

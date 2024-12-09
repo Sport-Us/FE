@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import Header from "@/app/components/Header";
 import { axios } from "@/lib/axios";
 import Loading from "@/app/loading";
+import Footer from "@/app/components/Footer";
+import { ClipLoader } from "react-spinners";
 
 interface Bookmark {
   bookmarkId: number;
@@ -110,6 +112,13 @@ const categoryColors = [...lectureCategories, ...facilityCategories].reduce(
   },
   {} as Record<string, string>
 );
+function debounce(func: Function, wait: number) {
+  let timeout: NodeJS.Timeout | null = null;
+  return (...args: any[]) => {
+    if (timeout) clearTimeout(timeout);
+    timeout = setTimeout(() => func(...args), wait);
+  };
+}
 
 export default function BookmarkPage() {
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
@@ -120,73 +129,73 @@ export default function BookmarkPage() {
   const loaderRef = useRef<HTMLDivElement | null>(null);
   const router = useRouter();
 
-  const fetchBookmarks = async (lastId: number | null) => {
+  const fetchBookmarks = async (lastBookMarkId: number | null) => {
+    if (isFetching) return;
+    setIsFetching(true);
     try {
-      setIsFetching(true);
       const response = await axios.get("/users/bookmark", {
-        params: { lastBookMarkId: lastId ?? 0 }, // 초기 호출 시 0을 전달합니다.
+        params: { lastBookMarkId: lastBookMarkId ?? 0 }, // API에 마지막 bookMarkId 전달
       });
-
+  
       if (response.data.isSuccess) {
         const { bookMarkList, hasNext } = response.data.results;
+        const newLastBookmarkId =
+        bookMarkList[bookMarkList.length - 1]?.bookMarkId || null;
 
-        setBookmarks((prev) => {
-          const existingIds = new Set(prev.map((b) => b.bookmarkId)); // 기존 ID를 집합으로 만듦
-          const uniqueBookmarks = bookMarkList.filter(
-            (bookmark: { bookmarkId: number }) =>
-              !existingIds.has(bookmark.bookmarkId) // 기존에 없는 ID만 추가
-          );
-          return [...prev, ...uniqueBookmarks];
-        });
+      setBookmarks((prev) => {
+        const existingIds = new Set(prev.map((b) => b.bookmarkId));
+        const uniqueBookmarks = bookMarkList.filter(
+          (bookmark: { bookMarkId: number; }) => !existingIds.has(bookmark.bookMarkId)
+        );
+        return [...prev, ...uniqueBookmarks];
+      });
+
+      if (newLastBookmarkId) {
+        lastBookmarkIdRef.current = newLastBookmarkId;
+      }
         setHasNext(hasNext);
-
-        if (bookMarkList.length > 0) {
-          lastBookmarkIdRef.current =
-            bookMarkList[bookMarkList.length - 1].bookmarkId; // 마지막 ID를 업데이트합니다.
-        }
-      } else {
-        alert("북마크를 불러오는 데 실패했습니다.");
       }
     } catch (error) {
       console.error("북마크 가져오기 실패:", error);
-      alert("북마크 가져오는 중 오류가 발생했습니다.");
     } finally {
-      setLoading(false);
       setIsFetching(false);
     }
   };
 
   useEffect(() => {
-    fetchBookmarks(0); // 첫 번째 호출에 0을 전달합니다.
+    setLoading(true);
+    fetchBookmarks(0).finally(() => setLoading(false));
   }, []);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && hasNext) {
-          const lastBookmarkId = bookmarks[bookmarks.length - 1]?.bookmarkId || 0;
-          fetchBookmarks(lastBookmarkId);
+      debounce((entries: any[]) => {
+        const entry = entries[0];
+        if (entry.isIntersecting && hasNext && !isFetching) {
+          fetchBookmarks(lastBookmarkIdRef.current); // 항상 최신 ID 전달
         }
-      },
+      }, 300),
       { threshold: 1.0 }
     );
-
-    if (loaderRef.current) {
-      observer.observe(loaderRef.current);
+  
+    const currentLoader = loaderRef.current;
+  
+    if (currentLoader) {
+      observer.observe(currentLoader);
     }
-
+  
     return () => {
-      if (loaderRef.current) {
-        observer.unobserve(loaderRef.current);
+      if (currentLoader) {
+        observer.unobserve(currentLoader);
       }
     };
-  }, [loaderRef.current, hasNext, isFetching]);
-
+  }, [hasNext, isFetching, bookmarks]);
+  
   const handleBookmarkClick = (placeId: number) => {
     router.push(`/home/${placeId}`);
   };
 
-  if (loading) {
+  if (loading && bookmarks.length === 0) {
     return <Loading />;
   }
 
@@ -315,9 +324,15 @@ export default function BookmarkPage() {
               </p>
             </div>
           ))}
+          {loading && hasNext && (
+            <div className="flex justify-center items-center my-4">
+              <ClipLoader size={35} color={"#0187BA"} loading={true} />
+            </div>
+          )}
           <div ref={loaderRef} style={{ height: "50px" }} />
         </div>
       )}
+      <Footer />
     </div>
   );
 }
