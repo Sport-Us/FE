@@ -38,7 +38,7 @@ export default function RecommendPage() {
     GOLF: "골프",
     BAWLING: "볼링",
     BILLIARDS: "당구",
-    CLIMBING: "클라이밍",
+    CLIIMBING: "클라이밍",
     ROLLER_SKATING: "롤러인라인",
     ICE_SKATING: "빙상(스케이트)",
     COMPREHENSIVE: "종합체육시설",

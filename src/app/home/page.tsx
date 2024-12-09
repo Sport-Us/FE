@@ -220,7 +220,7 @@ export default function Home() {
     골프: "GOLF",
     볼링: "BAWLING",
     당구: "BILLIARDS",
-    클라이밍: "CLIMBING",
+    클라이밍: "CLIIMBING",
     롤러인라인: "ROLLER_SKATING",
     "빙상(스케이트)": "ICE_SKATING",
     기타종목: "ETC",
