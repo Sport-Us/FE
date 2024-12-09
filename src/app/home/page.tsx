@@ -115,6 +115,37 @@ export default function Home() {
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [recentSearches, setRecentSearches] = useState<string[]>([]); // 최근 검색어
   const mapRef = useRef<any>(null);
+
+  const handleCurrentLocation = () => {
+    if (!map || !navigator.geolocation) {
+      console.warn("지도 또는 Geolocation을 사용할 수 없습니다.");
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+
+        map.setCenter(new window.naver.maps.LatLng(latitude, longitude));
+        map.setZoom(14); // 적절한 줌 레벨 설정
+
+        // 마커 추가 (선택사항)
+        new window.naver.maps.Marker({
+          position: new window.naver.maps.LatLng(latitude, longitude),
+          map,
+          icon: {
+            url: "/current-location.png", // 현위치 아이콘 (선택적으로 커스텀 가능)
+            size: new window.naver.maps.Size(24, 24),
+            scaledSize: new window.naver.maps.Size(24, 24),
+          },
+        });
+      },
+      (error) => {
+        console.error("위치 정보를 가져오는 데 실패했습니다:", error);
+      }
+    );
+  };
+
   useEffect(() => {
     if (!map) return;
 
@@ -501,6 +532,9 @@ export default function Home() {
       const mapOptions = {
         center: new window.naver.maps.LatLng(latitude, longitude),
         zoom: 14,
+        logoControl: false,
+        scaleControl: false,
+        mapDataControl: false,
       };
 
       const newMap = new window.naver.maps.Map("map", mapOptions);
@@ -512,27 +546,41 @@ export default function Home() {
       // });
 
       window.naver.maps.Event.addListener(newMap, "bounds_changed", () => {
-        clearMarkers(); // 기존 마커 제거
+        clearMarkers();
 
         handleCategoryApply();
       });
     };
-
-    const handleLocationError = (error: GeolocationPositionError) => {
-      console.error("위치 정보를 가져오는 데 실패했습니다:", error);
-      initMap(37.5665, 126.978);
-    };
-
     const loadMapWithCurrentLocation = () => {
       if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition((position) => {
-          const { latitude, longitude } = position.coords;
-          initMap(latitude, longitude);
-        }, handleLocationError);
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const { latitude, longitude } = position.coords;
+            initMap(latitude, longitude);
+          },
+          (error) => {
+            console.error("위치 정보를 가져오는 데 실패했습니다:", error);
+            initMap(37.5665, 126.978); // 서울 시청을 기본값으로 설정
+          }
+        );
       } else {
         console.warn("Geolocation을 사용할 수 없습니다.");
         initMap(37.5665, 126.978);
       }
+    };
+
+    if (!window.naver) {
+      const script = document.createElement("script");
+      script.src = `https://openapi.map.naver.com/openapi/v3/maps.js?ncpClientId=YOUR_CLIENT_ID`;
+      script.async = true;
+      script.onload = loadMapWithCurrentLocation;
+      document.head.appendChild(script);
+    } else {
+      loadMapWithCurrentLocation();
+    }
+    const handleLocationError = (error: GeolocationPositionError) => {
+      console.error("위치 정보를 가져오는 데 실패했습니다:", error);
+      initMap(37.5665, 126.978);
     };
 
     if (!window.naver) {
@@ -565,7 +613,7 @@ export default function Home() {
   const handleSearchSubmit = () => {
     if (!searchInput.trim()) return;
 
-    setSearchActive(true); // 검색 결과 화면 활성화
+    setSearchActive(true); 
     addSearchToRecent(searchInput);
     fetchSearchResults(true);
   };
@@ -576,15 +624,15 @@ export default function Home() {
       return;
     }
     const targetUrl = `/home/${placeId}`;
-    console.log("Navigating to:", targetUrl); // 라우트 확인
+    console.log("Navigating to:", targetUrl); 
     router.push(targetUrl);
   };
 
   const handleRecentSearchClick = (searchTerm: string) => {
-    setSearchInput(searchTerm); // 검색창에 최근 검색어 입력
-    setSearchActive(true); // 검색 화면 활성화
-    addSearchToRecent(searchTerm); // 최근 검색어 갱신
-    fetchSearchResults(true); // 검색 결과 가져오기
+    setSearchInput(searchTerm); 
+    setSearchActive(true); 
+    addSearchToRecent(searchTerm); 
+    fetchSearchResults(true); 
   };
 
   const handleMarkerClick = (placeId: number) => {
@@ -592,11 +640,44 @@ export default function Home() {
   };
 
   return (
-    <div className="relative w-full h-screen">
+    <div className="relative w-full h-screen max-w-[375px] mx-auto">
       <div
         id="map"
-        className="absolute top-0 left-1/2 transform -translate-x-1/2 max-w-[375px] w-full h-full"
+        className="absolute top-0 left-0 w-full h-full"
+        style={{ zIndex: 0 }}
       ></div>
+
+      <style jsx>{`
+        #map .naver-copyright,
+        #map .naver-logo {
+          position: absolute !important;
+          bottom: 80px;
+          left: 10px;
+          z-index: 10; 
+        }
+      `}</style>
+      <button
+        className="absolute bottom-20 right-4 w-12 h-12 bg-white rounded-full shadow-lg flex items-center justify-center z-50 border border-gray-300"
+        onClick={handleCurrentLocation}
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+        >
+          <circle
+            cx="12"
+            cy="12"
+            r="10"
+            stroke="#000"
+            strokeWidth="2"
+            fill="none"
+          />
+          <circle cx="12" cy="12" r="4" fill="#000" />
+        </svg>
+      </button>
       {searchActive ? (
         <div className="absolute top-0 left-0 w-full h-full bg-white z-50 flex flex-col items-center">
           <div className="flex items-center w-[343px] mt-6 gap-2">
@@ -898,7 +979,7 @@ export default function Home() {
                     className="flex items-center justify-between py-2"
                   >
                     <div
-                      className="flex items-center gap-[12px] cursor-pointer" 
+                      className="flex items-center gap-[12px] cursor-pointer"
                       onClick={() => handleRecentSearchClick(item)} // 클릭 이벤트
                     >
                       <svg
@@ -956,10 +1037,9 @@ export default function Home() {
                   </div>
                 ))}
               </div>
-
             )}
-          </div>        <Footer />
-
+          </div>{" "}
+          <Footer />
         </div>
       ) : (
         <div className="absolute top-0 w-full flex flex-col items-center">

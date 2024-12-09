@@ -37,7 +37,6 @@ export default function OnboardingPage() {
     try {
       localStorage.setItem("accessToken", accessTokenParam);
       localStorage.setItem("refreshToken", refreshTokenParam);
-      console.log("소셜 로그인 토큰 저장 완료.");
 
     } catch (error) {
       console.error("소셜 로그인 토큰 저장 중 오류:", error);

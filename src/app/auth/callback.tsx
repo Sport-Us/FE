@@ -22,11 +22,9 @@ export default function AuthCallback() {
 
       if (accessToken && refreshToken) {
         try {
-          // 토큰 저장
           localStorage.setItem("accessToken", accessToken);
           localStorage.setItem("refreshToken", refreshToken);
 
-          // 온보딩 여부에 따라 라우팅
           if (isOnboarded) {
             setTimeout(() => router.push("/home"), 100);
           } else {
