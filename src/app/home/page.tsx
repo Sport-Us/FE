@@ -218,7 +218,7 @@ export default function Home() {
     배드민턴: "BADMINTON",
     테니스: "TENNIS",
     골프: "GOLF",
-    볼링: "BOWLING",
+    볼링: "BAWLING",
     당구: "BILLIARDS",
     클라이밍: "CLIMBING",
     롤러인라인: "ROLLER_SKATING",

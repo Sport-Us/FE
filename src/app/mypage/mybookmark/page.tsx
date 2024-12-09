@@ -40,7 +40,7 @@ const categoryMap: Record<string, string> = {
   BADMINTON: "배드민턴",
   TENNIS: "테니스",
   GOLF: "골프",
-  BOWLING: "볼링",
+  BAWLING: "볼링",
   BILLIARDS: "당구",
   CLIMBING: "클라이밍",
   ROLLER_SKATING: "롤러라인",

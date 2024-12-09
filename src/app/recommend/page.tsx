@@ -16,10 +16,9 @@ export default function RecommendPage() {
   const [recommendations, setRecommendations] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [hasNext, setHasNext] = useState<boolean>(true);
-  const [categories, setCategories] = useState<string[]>([]);
   const loaderRef = useRef<HTMLDivElement | null>(null);
+  const [page, setPage] = useState<number>(0);
   const router = useRouter();
-
   const categoryMap: Record<string, string> = {
     ALL: "전체",
     PUBLIC: "공공시설",
@@ -37,7 +36,7 @@ export default function RecommendPage() {
     SQUASH: "스쿼시",
     BADMINTON: "배드민턴",
     GOLF: "골프",
-    BOWLING: "볼링",
+    BAWLING: "볼링",
     BILLIARDS: "당구",
     CLIMBING: "클라이밍",
     ROLLER_SKATING: "롤러인라인",
@@ -59,6 +58,7 @@ export default function RecommendPage() {
     CROSSFIT: "크로스핏",
     AEROBICS: "에어로빅",
     DANCE: "댄스",
+    ETC: "기타종목",
   };
 
   const lectureCategories = [
@@ -123,35 +123,52 @@ export default function RecommendPage() {
     }
   };
 
-  const fetchRecommendations = async () => {
-    if (latitude === null || longitude === null || !hasNext) return;
+  const fetchRecommendations = async (isInitial = true) => {
+    if ((isInitial && (latitude === null || longitude === null)) || !hasNext)
+      return;
+
     setLoading(true);
     try {
       const endpoint =
         selectedTab === "강좌 추천"
-          ? "/recommend/search/lectures"
-          : "/recommend/search/facilities";
+          ? isInitial
+            ? "/recommend/search/lectures"
+            : "/places/search/lectures"
+          : isInitial
+          ? "/recommend/search/facilities"
+          : "/places/search/facilities";
+
+      const params = isInitial
+        ? { latitude, longitude }
+        : {
+            latitude,
+            longitude,
+            maxDistance: 10000,
+            category: "ALL",
+            sortType: "STAR_DESC",
+            page,
+          };
 
       const response = await axios.get(endpoint, {
-        params: { latitude, longitude },
+        params,
         headers: {
           Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
         },
       });
 
       if (response.data.isSuccess) {
-        setRecommendations((prev) => [
-          ...prev,
-          ...response.data.results.placeList,
-        ]);
-        setCategories(response.data.results.categoryList || []);
+        const newRecommendations = response.data.results.placeList;
+
+        setRecommendations((prev) =>
+          isInitial ? newRecommendations : [...prev, ...newRecommendations]
+        );
 
         setHasNext(response.data.results.hasNext);
+        if (!isInitial) setPage((prevPage) => prevPage + 1);
+
+        console.log("Recommendations:", newRecommendations);
       } else {
-        console.error(
-          "추천 데이터를 가져오지 못했습니다:",
-          response.data.message
-        );
+        console.error("데이터를 가져오지 못했습니다:", response.data.message);
       }
     } catch (error) {
       console.error("추천 데이터 API 호출 에러:", error);
@@ -161,67 +178,66 @@ export default function RecommendPage() {
   };
 
   const fetchAdditionalData = async () => {
+    console.log("Fetching additional data with params:", {
+      page,
+      category: "ALL",
+      latitude,
+      longitude,
+    });
+
+    if (!hasNext || !latitude || !longitude || loading) {
+      console.log("Fetch conditions not met", {
+        hasNext,
+        latitude,
+        longitude,
+        loading,
+      });
+      return;
+    }
+    setLoading(true);
+
     try {
-      if (!hasNext || !latitude || !longitude) return;
+      const endpoint =
+        selectedTab === "강좌 추천"
+          ? "/places/search/lectures"
+          : "/places/search/facilities";
 
-      const lecturesResponse = await axios.get("/places/search/lectures", {
+      const response = await axios.get(endpoint, {
         params: {
           latitude,
           longitude,
-          maxDistance: 5000,
-          category: categories.join(","),
+          maxDistance: 10000,
+          category: "ALL",
+          sortType: "STAR_DESC",
+          page,
         },
         headers: {
           Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
         },
       });
 
-      const facilitiesResponse = await axios.get("/places/search/facilities", {
-        params: {
-          latitude,
-          longitude,
-          maxDistance: 5000,
-          category: categories.join(","),
-        },
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-        },
-      });
+      if (response.data.isSuccess) {
+        const newRecommendations = response.data.results.placeList;
 
-      if (lecturesResponse.data.isSuccess) {
-        setRecommendations((prev) => [
-          ...prev,
-          ...lecturesResponse.data.results.placeList,
-        ]);
+        setRecommendations((prev) => [...prev, ...newRecommendations]);
+
+        setHasNext(response.data.results.hasNext);
+        setPage((prevPage) => prevPage + 1);
+        console.log("Fetched Additional Data:", newRecommendations);
+        console.log("Updated Page:", page);
       }
-
-      if (facilitiesResponse.data.isSuccess) {
-        setRecommendations((prev) => [
-          ...prev,
-          ...facilitiesResponse.data.results.placeList,
-        ]);
-      }
-
-      setHasNext(
-        lecturesResponse.data.results.hasNext ||
-          facilitiesResponse.data.results.hasNext
-      );
     } catch (error) {
       console.error("추가 데이터 API 호출 에러:", error);
+    } finally {
+      setLoading(false);
     }
   };
+
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
-        console.log("Observer triggered:", entries[0].isIntersecting);
-        if (entries[0].isIntersecting && hasNext) {
-          if (selectedTab === "강좌 추천") {
-            console.log("Fetching recommendations...");
-            fetchRecommendations();
-          } else {
-            console.log("Fetching additional data...");
-            fetchAdditionalData();
-          }
+        if (entries[0].isIntersecting && hasNext && !loading) {
+          fetchRecommendations(false);
         }
       },
       {
@@ -229,31 +245,39 @@ export default function RecommendPage() {
         rootMargin: "100px",
       }
     );
-  
+
     if (loaderRef.current) {
       observer.observe(loaderRef.current);
     }
-  
+
     return () => {
       if (loaderRef.current) observer.unobserve(loaderRef.current);
     };
   }, [loaderRef.current, hasNext, latitude, longitude, selectedTab]);
-  
 
   useEffect(() => {
     fetchLocation();
   }, []);
 
+  // useEffect(() => {
+  //   if (latitude !== null && longitude !== null) {
+  //     fetchRecommendations();
+  //   }
+  // }, [latitude, longitude, selectedTab]);
+
   useEffect(() => {
-    if (latitude !== null && longitude !== null) {
-      fetchRecommendations();
-    }
-  }, [latitude, longitude, selectedTab]);
+    console.log("Selected Tab changed to:", selectedTab);
+    setRecommendations([]);
+    setHasNext(true);
+    setPage(0);
+    fetchRecommendations(true);
+  }, [selectedTab, latitude, longitude]);
 
   const handleTabClick = (tab: "강좌 추천" | "시설 추천") => {
     setSelectedTab(tab);
     setRecommendations([]);
     setHasNext(true);
+    setPage(1);
   };
 
   const handleItemClick = (placeId: number) => {
