@@ -568,7 +568,6 @@ export default function Home() {
           (position) => {
             const { latitude, longitude } = position.coords;
             initMap(latitude, longitude);
-            
           },
           (error) => {
             console.error("위치 정보를 가져오는 데 실패했습니다:", error);
@@ -625,7 +624,7 @@ export default function Home() {
   const handleSearchSubmit = () => {
     if (!searchInput.trim()) return;
 
-    setSearchActive(true); 
+    setSearchActive(true);
     addSearchToRecent(searchInput);
     fetchSearchResults(true);
   };
@@ -636,15 +635,15 @@ export default function Home() {
       return;
     }
     const targetUrl = `/home/${placeId}`;
-    console.log("Navigating to:", targetUrl); 
+    console.log("Navigating to:", targetUrl);
     router.push(targetUrl);
   };
 
   const handleRecentSearchClick = (searchTerm: string) => {
-    setSearchInput(searchTerm); 
-    setSearchActive(true); 
-    addSearchToRecent(searchTerm); 
-    fetchSearchResults(true); 
+    setSearchInput(searchTerm);
+    setSearchActive(true);
+    addSearchToRecent(searchTerm);
+    fetchSearchResults(true);
   };
 
   const handleMarkerClick = (placeId: number) => {
@@ -665,7 +664,7 @@ export default function Home() {
           position: absolute !important;
           bottom: 80px;
           left: 10px;
-          z-index: 10; 
+          z-index: 10;
         }
       `}</style>
       <button
@@ -928,54 +927,65 @@ export default function Home() {
             {searchInput.trim() ? (
               searchResults.length > 0 ? (
                 <>
-                  {searchResults.map((result) => (
-                    <div
-                      key={result.id}
-                      onClick={() => handleResultClick(result.placeId)}
-                      className="flex flex-col px-[6px] py-[12px] gap-[4px] border-b border-[var(--Gray-200,#E8E8E8)]"
-                    >
+                  {searchResults.map((result) => {
+                    const koreanCategory = getKoreanCategory(result.category); // 한글 카테고리 이름 가져오기
+                    const bgColor =
+                      currentCategories.find(
+                        (cat) => cat.name === koreanCategory
+                      )?.bgColor || "#EEE"; // 배경색 매핑
+
+                    return (
                       <div
-                        className="flex items-center justify-center h-[24px] px-[12px] gap-[2px] rounded-[2px] bg-[var(--Badge-green,#E5F9EE)]"
-                        style={{ width: "fit-content" }}
+                        key={result.id}
+                        onClick={() => handleResultClick(result.placeId)}
+                        className="flex flex-col px-[6px] py-[12px] gap-[4px] border-b border-[var(--Gray-200,#E8E8E8)]"
                       >
-                        <span className="text-[12px] font-medium text-[var(--Black,#1A1A1B)]">
-                          {getKoreanCategory(result.category)}
-                        </span>
-                      </div>
-                      <span className="text-[var(--Black,#1A1A1B)] font-[Inter] text-[16px] font-bold leading-[24px]">
-                        {result.name}
-                      </span>
-                      <div className="flex items-center gap-[4px]">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="14"
-                          height="12"
-                          viewBox="0 0 14 12"
-                          fill="none"
+                        <div
+                          className="flex items-center justify-center h-[24px] px-[12px] gap-[2px] rounded-[2px]"
+                          style={{
+                            backgroundColor: bgColor,
+                            width: "fit-content",
+                          }}
                         >
-                          <path
-                            d="M7.00003 10.0496L10.0448 11.8912C10.6024 12.2287 11.2847 11.7298 11.138 11.0988L10.331 7.63582L13.0236 5.3027C13.5151 4.87717 13.251 4.07011 12.6054 4.01875L9.06168 3.71794L7.67502 0.445713C7.42556 -0.148571 6.57449 -0.148571 6.32504 0.445713L4.93837 3.71061L1.39468 4.01142C0.749039 4.06278 0.484913 4.86983 0.976481 5.29536L3.6691 7.62848L2.86205 11.0915C2.71531 11.7224 3.39764 12.2213 3.95524 11.8838L7.00003 10.0496Z"
-                            fill="#FFD643"
-                          />
-                        </svg>
-                        <span className="text-[12px] text-[var(--Black,#1A1A1B)]">
-                          {result.rating}
+                          <span className="text-[12px] font-medium text-[var(--Black,#1A1A1B)]">
+                            {koreanCategory}
+                          </span>
+                        </div>
+                        <span className="text-[var(--Black,#1A1A1B)] font-[Inter] text-[16px] font-bold leading-[24px]">
+                          {result.name}
                         </span>
-                        <span className="text-[12px] text-[#8E9398]">
-                          ({result.reviewCount})
+                        <div className="flex items-center gap-[4px]">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="14"
+                            height="12"
+                            viewBox="0 0 14 12"
+                            fill="none"
+                          >
+                            <path
+                              d="M7.00003 10.0496L10.0448 11.8912C10.6024 12.2287 11.2847 11.7298 11.138 11.0988L10.331 7.63582L13.0236 5.3027C13.5151 4.87717 13.251 4.07011 12.6054 4.01875L9.06168 3.71794L7.67502 0.445713C7.42556 -0.148571 6.57449 -0.148571 6.32504 0.445713L4.93837 3.71061L1.39468 4.01142C0.749039 4.06278 0.484913 4.86983 0.976481 5.29536L3.6691 7.62848L2.86205 11.0915C2.71531 11.7224 3.39764 12.2213 3.95524 11.8838L7.00003 10.0496Z"
+                              fill="#FFD643"
+                            />
+                          </svg>
+                          <span className="text-[12px] text-[var(--Black,#1A1A1B)]">
+                            {result.rating}
+                          </span>
+                          <span className="text-[12px] text-[#8E9398]">
+                            ({result.reviewCount})
+                          </span>
+                        </div>
+                        <span className="text-[var(--Gray-500,#505458)] font-[Inter] text-[12px] font-semibold leading-[18px]">
+                          {result.distance}m · {result.address}
                         </span>
                       </div>
-                      <span className="text-[var(--Gray-500,#505458)] font-[Inter] text-[12px] font-semibold leading-[18px]">
-                        {result.distance}m · {result.address}
-                      </span>
+                    );
+                  })}
+
+                  {searchLoading && hasNextPage && (
+                    <div className="flex justify-center items-center my-4">
+                      <ClipLoader size={35} color={"#0187BA"} loading={true} />
                     </div>
-                  ))}
-                  {/* 로딩 스피너 */}
-                {searchLoading && hasNextPage && (
-                  <div className="flex justify-center items-center my-4">
-                    <ClipLoader size={35} color={"#0187BA"} loading={true} />
-                  </div>
-                )}
+                  )}
                   <div
                     id="load-more-trigger"
                     style={{ height: "1px", visibility: "hidden" }}
