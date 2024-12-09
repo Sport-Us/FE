@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { axios } from "@/lib/axios";
 import Footer from "../components/Footer";
 import { debounce } from "lodash";
+import { ClipLoader } from "react-spinners";
 import Loading from "../loading";
 
 export default function Home() {
@@ -969,6 +970,12 @@ export default function Home() {
                       </span>
                     </div>
                   ))}
+                  {/* 로딩 스피너 */}
+                {searchLoading && hasNextPage && (
+                  <div className="flex justify-center items-center my-4">
+                    <ClipLoader size={35} color={"#0187BA"} loading={true} />
+                  </div>
+                )}
                   <div
                     id="load-more-trigger"
                     style={{ height: "1px", visibility: "hidden" }}
