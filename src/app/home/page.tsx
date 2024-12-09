@@ -540,6 +540,16 @@ export default function Home() {
       const newMap = new window.naver.maps.Map("map", mapOptions);
       setMap(newMap);
 
+      new window.naver.maps.Marker({
+        position: new window.naver.maps.LatLng(latitude, longitude),
+        map: newMap, // newMap 사용
+        icon: {
+          url: "/current-location.png", // 현위치 아이콘
+          size: new window.naver.maps.Size(24, 24),
+          scaledSize: new window.naver.maps.Size(24, 24),
+        },
+      });
+
       // new window.naver.maps.Marker({
       //   position: new window.naver.maps.LatLng(latitude, longitude),
       //   map: newMap,
@@ -557,6 +567,7 @@ export default function Home() {
           (position) => {
             const { latitude, longitude } = position.coords;
             initMap(latitude, longitude);
+            
           },
           (error) => {
             console.error("위치 정보를 가져오는 데 실패했습니다:", error);
