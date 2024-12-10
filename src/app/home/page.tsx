@@ -598,6 +598,7 @@ export default function Home() {
         position: new window.naver.maps.LatLng(latitude, longitude),
         map: newMap,
         icon: {
+          url: "/current-location.png",
           size: new window.naver.maps.Size(24, 24),
           scaledSize: new window.naver.maps.Size(24, 24),
         },
