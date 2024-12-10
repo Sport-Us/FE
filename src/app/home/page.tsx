@@ -91,14 +91,15 @@ export default function Home() {
   const [selectedTab, setSelectedTab] = useState<"체육 강좌" | "체육 시설">(
     "체육 강좌"
   );
+  const [selectedSearchTab, setSelectedSearchTab] = useState<
+    "체육 강좌" | "체육 시설"
+  >("체육 강좌");
   const [selectedLectureCategories, setSelectedLectureCategories] = useState<
     string[]
   >(["전체"]);
   const [selectedFacilityCategories, setSelectedFacilityCategories] = useState<
     string[]
   >(["전체"]);
-  const currentCategories =
-    selectedTab === "체육 강좌" ? lectureCategories : facilityCategories;
 
   const [map, setMap] = useState<any>(null);
   const markersRef = useRef<any[]>([]);
@@ -117,6 +118,26 @@ export default function Home() {
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [recentSearches, setRecentSearches] = useState<string[]>([]); // 최근 검색어
   const mapRef = useRef<any>(null);
+
+  const currentCategories =
+    searchActive && selectedSearchTab === "체육 강좌"
+      ? lectureCategories
+      : searchActive && selectedSearchTab === "체육 시설"
+      ? facilityCategories
+      : selectedTab === "체육 강좌"
+      ? lectureCategories
+      : facilityCategories;
+
+  const handleBackButtonClick = () => {
+    setSearchActive(false); 
+    setSearchInput("");
+    setIsSearchSubmitted(false); 
+    setSearchResults([]); 
+    setSelectedTab("체육 강좌"); 
+    setSelectedSearchTab("체육 강좌"); 
+
+    router.push("/home");
+  };
 
   const handleCurrentLocation = () => {
     if (!map || !navigator.geolocation) {
@@ -182,6 +203,23 @@ export default function Home() {
     if (storedSearches) {
       setRecentSearches(JSON.parse(storedSearches));
     }
+  }, []);
+
+  useEffect(() => {
+    const handlePopState = () => {
+      setSearchActive(false); // 검색 화면 비활성화
+      setSearchInput(""); // 검색 입력 초기화
+      setIsSearchSubmitted(false); // 검색 제출 상태 초기화
+      setSearchResults([]); // 검색 결과 초기화
+      setSelectedTab("체육 강좌"); // 기본 탭 초기화
+      setSelectedSearchTab("체육 강좌"); // 검색 탭 기본값 초기화
+    };
+
+    window.addEventListener("popstate", handlePopState);
+
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+    };
   }, []);
 
   const addSearchToRecent = (searchTerm: string) => {
@@ -386,7 +424,6 @@ export default function Home() {
       fetchSearchResults(true);
     }
   }, [
-    selectedTab,
     searchInput,
     selectedLectureCategories,
     selectedFacilityCategories,
@@ -397,16 +434,20 @@ export default function Home() {
   //검색
   const defaultMaxDistance = 100000;
   const currentCategory =
-    selectedTab === "체육 강좌"
+    selectedSearchTab === "체육 강좌"
       ? selectedLectureCategories
       : selectedFacilityCategories;
   const currentEndpoint =
-    selectedTab === "체육 강좌"
+    selectedSearchTab === "체육 강좌"
       ? "/places/search/lectures"
       : "/places/search/facilities";
 
-  const fetchSearchResults = async (reset: boolean = false) => {
+  const fetchSearchResults = async (
+    reset: boolean = false,
+    tab?: "체육 강좌" | "체육 시설"
+  ) => {
     if (!map || searchLoading) return;
+    const currentTab = tab || selectedSearchTab; // 명시적으로 탭을 전달받거나 현재 상태 사용
 
     const center = mapRef.current?.getCenter();
     const longitude = center?.lng() || 127.027619;
@@ -423,7 +464,7 @@ export default function Home() {
         ? "ALL"
         : currentCategory.map((cat) => categoryMap[cat]).join(","),
       sortType: selectedFilter === "별점순" ? "STAR_DESC" : "DISTANCE_ASC",
-      keyword: searchInput,
+      keyword: searchInput.trim(),
       page: reset ? 0 : currentPage,
     };
 
@@ -431,7 +472,7 @@ export default function Home() {
 
     try {
       const response = await axios.get(
-        selectedTab === "체육 강좌"
+        selectedSearchTab === "체육 강좌"
           ? "/places/search/lectures"
           : "/places/search/facilities",
         { params }
@@ -441,8 +482,8 @@ export default function Home() {
         const { placeList, hasNext, page } = response.data.results;
 
         setSearchResults(reset ? placeList : [...searchResults, ...placeList]);
-        setHasNextPage(hasNext);
-        setCurrentPage(page + 1);
+        setHasNextPage(hasNext); // 다음 페이지 여부 업데이트
+        setCurrentPage(page + 1); // 다음 페이지로 이동
       } else {
         console.error("API 호출 실패:", response.data.message);
       }
@@ -453,32 +494,31 @@ export default function Home() {
     }
   };
 
-
-
-
-  const handleTabChange = async (newTab: "체육 강좌" | "체육 시설") => {
+  const handleTabChange = (newTab: "체육 강좌" | "체육 시설") => {
     if (newTab !== selectedTab) {
-      setSelectedTab(newTab); // 탭 변경
-      setSearchLoading(true);
-      setSearchResults([]); // 기존 검색 결과 초기화
-  
-      if (searchInput.trim()) {
-        // 검색어가 있을 경우 검색 실행
-        setIsSearchSubmitted(true); // 검색 상태 활성화
-        await fetchSearchResults(true);
-      }
-  
-      setSearchLoading(false);
+      setSelectedTab(newTab);
     }
   };
-  
+
+  const handleSearchTabChange = (newTab: "체육 강좌" | "체육 시설") => {
+    if (newTab !== selectedSearchTab) {
+      setSelectedSearchTab(newTab);
+    }
+  };
+
+  useEffect(() => {
+    if (searchActive && selectedSearchTab) {
+      setSearchResults([]); // 검색 결과 초기화
+      setCurrentPage(0); // 페이지 초기화
+      setHasNextPage(true); // 다음 페이지 여부 초기화
+      fetchSearchResults(true); // 선택된 탭에 따라 새로운 검색 결과 요청
+    }
+  }, [selectedSearchTab]);
 
   const loadMoreResults = async () => {
-    // 검색 중이거나 더 이상 데이터가 없을 때 실행 안 함
     if (searchLoading || !hasNextPage || infiniteScrollLoading) return;
 
-    // 로딩 상태 시작
-    setInfiniteScrollLoading(true); // 무한 스크롤 로딩 시작
+    setInfiniteScrollLoading(true);
 
     try {
       const response = await axios.get(currentEndpoint, {
@@ -518,7 +558,11 @@ export default function Home() {
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && hasNextPage && !infiniteScrollLoading) {
+        if (
+          entries[0].isIntersecting &&
+          hasNextPage &&
+          !infiniteScrollLoading
+        ) {
           loadMoreResults();
         }
       },
@@ -553,7 +597,7 @@ export default function Home() {
 
       new window.naver.maps.Marker({
         position: new window.naver.maps.LatLng(latitude, longitude),
-        map: newMap, 
+        map: newMap,
         icon: {
           size: new window.naver.maps.Size(24, 24),
           scaledSize: new window.naver.maps.Size(24, 24),
@@ -580,7 +624,7 @@ export default function Home() {
           },
           (error) => {
             console.error("위치 정보를 가져오는 데 실패했습니다:", error);
-            initMap(37.5665, 126.978); // 서울 시청을 기본값으로 설정
+            initMap(37.5665, 126.978);
           }
         );
       } else {
@@ -628,26 +672,26 @@ export default function Home() {
   const handleSearchInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value;
     setSearchInput(query);
-  
-    // 검색어가 비어있으면 검색 결과 초기화
+
     if (!query.trim()) {
       setSearchResults([]);
-      setIsSearchSubmitted(false); // 검색 버튼 클릭 상태 초기화
+      setIsSearchSubmitted(false);
     }
   };
-  
-  // 검색 결과를 렌더링하는 부분 수정
-  {isSearchSubmitted && searchInput.trim() && searchResults.length === 0 && (
-    <p className="text-gray-500 text-center">검색 결과가 없습니다.</p>
-  )}
-  
+
+  {
+    isSearchSubmitted && searchInput.trim() && searchResults.length === 0 && (
+      <p className="text-gray-500 text-center">검색 결과가 없습니다.</p>
+    );
+  }
 
   const handleSearchSubmit = () => {
-    if (!searchInput.trim()) return;
-
     setSearchActive(true);
     setIsSearchSubmitted(true);
-    addSearchToRecent(searchInput);
+
+    if (searchInput.trim()) {
+      addSearchToRecent(searchInput);
+    }
     fetchSearchResults(true);
   };
 
@@ -714,7 +758,7 @@ export default function Home() {
       {searchActive ? (
         <div className="absolute top-0 left-0 w-full h-full bg-white z-50 flex flex-col items-center">
           <div className="flex items-center w-[343px] mt-6 gap-2">
-            <button onClick={() => setSearchActive(false)}>
+            <button onClick={handleBackButtonClick}>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="40"
@@ -776,48 +820,46 @@ export default function Home() {
               </svg>
             </div>
           </div>
-          {searchInput && searchResults.length > 0 && (
-            <div className="w-[343px] flex flex-col items-start mt-[16px]">
-              <div className="flex items-center w-[343px] h-[36px] gap-[4px] bg-[#EEE] rounded-lg">
-  <button
-    onClick={() => handleTabChange("체육 강좌")}
-    className={`flex items-center justify-center w-[175px] h-[36px] py-[10px] px-[16px] gap-[4px] rounded-lg ${
-      selectedTab === "체육 강좌"
-        ? "bg-[rgba(1,135,186,0.28)]"
-        : "bg-transparent"
-    }`}
-  >
-    <span
-      className={`text-[12px] font-bold leading-[18px] ${
-        selectedTab === "체육 강좌"
-          ? "text-[#000]"
-          : "text-[rgba(0,0,0,0.60)]"
-      }`}
-    >
-      체육 강좌
-    </span>
-  </button>
-  <button
-    onClick={() => handleTabChange("체육 시설")}
-    className={`flex items-center justify-center w-[175px] h-[36px] py-[10px] px-[16px] gap-[4px] rounded-lg ${
-      selectedTab === "체육 시설"
-        ? "bg-[rgba(1,135,186,0.28)]"
-        : "bg-transparent"
-    }`}
-  >
-    <span
-      className={`text-[12px] font-bold leading-[18px] ${
-        selectedTab === "체육 시설"
-          ? "text-[#000]"
-          : "text-[rgba(0,0,0,0.60)]"
-      }`}
-    >
-      체육 시설
-    </span>
-  </button>
-</div>
+          <div className="w-[343px] flex flex-col items-start mt-[16px]">
+            <div className="flex items-center w-[343px] h-[36px] gap-[4px] bg-[#EEE] rounded-lg">
+              <button
+                onClick={() => handleSearchTabChange("체육 강좌")}
+                className={`flex items-center justify-center w-[175px] h-[36px] py-[10px] px-[16px] gap-[4px] rounded-lg ${
+                  selectedSearchTab === "체육 강좌"
+                    ? "bg-[rgba(1,135,186,0.28)]"
+                    : "bg-transparent"
+                }`}
+              >
+                <span
+                  className={`text-[12px] font-bold leading-[18px] ${
+                    selectedSearchTab === "체육 강좌"
+                      ? "text-[#000]"
+                      : "text-[rgba(0,0,0,0.60)]"
+                  }`}
+                >
+                  체육 강좌
+                </span>
+              </button>
+              <button
+                onClick={() => handleSearchTabChange("체육 시설")}
+                className={`flex items-center justify-center w-[175px] h-[36px] py-[10px] px-[16px] gap-[4px] rounded-lg ${
+                  selectedSearchTab === "체육 시설"
+                    ? "bg-[rgba(1,135,186,0.28)]"
+                    : "bg-transparent"
+                }`}
+              >
+                <span
+                  className={`text-[12px] font-bold leading-[18px] ${
+                    selectedSearchTab === "체육 시설"
+                      ? "text-[#000]"
+                      : "text-[rgba(0,0,0,0.60)]"
+                  }`}
+                >
+                  체육 시설
+                </span>
+              </button>
             </div>
-          )}
+          </div>
           {distanceModalVisible && (
             <>
               <div
@@ -947,14 +989,11 @@ export default function Home() {
           </div>
           <div className="w-[343px] mt-[7px] flex-1 overflow-y-auto hide-scrollbar pb-[80px]">
             {isSearchSubmitted ? (
-searchLoading ? (
-  <div className="flex justify-center items-center my-4">
-    <ClipLoader size={35} color={"#0187BA"} loading={true} />
-  </div>
-) : 
-
-
-              searchResults.length > 0 ? (
+              searchLoading ? (
+                <div className="flex justify-center items-center my-4">
+                  <ClipLoader size={35} color={"#0187BA"} loading={true} />
+                </div>
+              ) : searchResults.length > 0 ? (
                 <>
                   {searchResults.map((result) => {
                     const koreanCategory = getKoreanCategory(result.category); // 한글 카테고리 이름 가져오기
@@ -1010,12 +1049,15 @@ searchLoading ? (
                     );
                   })}
 
-<div id="load-more-trigger" style={{ height: "1px", visibility: "hidden" }} />
-  {infiniteScrollLoading && (
-    <div className="flex justify-center items-center my-4">
-      <ClipLoader size={35} color={"#0187BA"} loading={true} />
-    </div>
-  )}
+                  <div
+                    id="load-more-trigger"
+                    style={{ height: "1px", visibility: "hidden" }}
+                  />
+                  {infiniteScrollLoading && (
+                    <div className="flex justify-center items-center my-4">
+                      <ClipLoader size={35} color={"#0187BA"} loading={true} />
+                    </div>
+                  )}
                   {/* <div
                     id="load-more-trigger"
                     style={{ height: "1px", visibility: "hidden" }}
@@ -1104,7 +1146,7 @@ searchLoading ? (
           <div className="w-full h-[103px] bg-white flex flex-col items-center gap-[8px] p-[10px]">
             <div className="flex items-center w-[343px] h-[36px] gap-[4px] bg-[#EEE] rounded-lg">
               <button
-                onClick={() => setSelectedTab("체육 강좌")}
+                onClick={() => handleTabChange("체육 강좌")}
                 className={`flex items-center justify-center w-[175px] h-[36px] py-[10px] px-[16px] gap-[4px] rounded-lg ${
                   selectedTab === "체육 강좌"
                     ? "bg-[rgba(1,135,186,0.28)]"
@@ -1116,7 +1158,7 @@ searchLoading ? (
                 </span>
               </button>
               <button
-                onClick={() => setSelectedTab("체육 시설")}
+                onClick={() => handleTabChange("체육 시설")}
                 className={`flex items-center justify-center w-[175px] h-[36px] py-[10px] px-[16px] gap-[4px] rounded-lg ${
                   selectedTab === "체육 시설"
                     ? "bg-[rgba(1,135,186,0.28)]"
