@@ -405,7 +405,7 @@ export default function Home() {
   const [categoryModalVisible, setCategoryModalVisible] = useState(false);
 
   const [selectedFilter, setSelectedFilter] = useState<"별점순" | "거리순">(
-    "별점순"
+    "거리순"
   );
   const filterOptions: ("별점순" | "거리순")[] = ["별점순", "거리순"];
 
@@ -462,7 +462,7 @@ export default function Home() {
       category: currentCategory.includes("전체")
         ? "ALL"
         : currentCategory.map((cat) => categoryMap[cat]).join(","),
-      sortType: selectedFilter === "별점순" ? "STAR_DESC" : "DISTANCE_ASC",
+      sortType: selectedFilter === "거리순" ? "DISTANCE_ASC" :"STAR_DESC",
       keyword: searchInput.trim(),
       page: reset ? 0 : currentPage,
     };
@@ -481,8 +481,8 @@ export default function Home() {
         const { placeList, hasNext, page } = response.data.results;
 
         setSearchResults(reset ? placeList : [...searchResults, ...placeList]);
-        setHasNextPage(hasNext); // 다음 페이지 여부 업데이트
-        setCurrentPage(page + 1); // 다음 페이지로 이동
+        setHasNextPage(hasNext); 
+        setCurrentPage(page + 1);
       } else {
         console.error("API 호출 실패:", response.data.message);
       }
