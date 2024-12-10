@@ -424,7 +424,6 @@ export default function Home() {
       fetchSearchResults(true);
     }
   }, [
-    searchInput,
     selectedLectureCategories,
     selectedFacilityCategories,
     selectedFilter,
@@ -686,14 +685,17 @@ export default function Home() {
   }
 
   const handleSearchSubmit = () => {
-    setSearchActive(true);
-    setIsSearchSubmitted(true);
-
+    setSearchActive(true); // 검색 화면 활성화
+    setIsSearchSubmitted(true); // 검색 버튼 클릭 상태 설정
+  
+    // 최근 검색어에 추가 (빈 검색어 제외)
     if (searchInput.trim()) {
       addSearchToRecent(searchInput);
     }
-    fetchSearchResults(true);
+  
+    fetchSearchResults(true); // 검색 요청 실행
   };
+  
 
   const handleResultClick = (placeId: number) => {
     if (!placeId) {
