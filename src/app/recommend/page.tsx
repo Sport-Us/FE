@@ -22,6 +22,9 @@ export default function RecommendPage() {
   const loaderRef = useRef<HTMLDivElement | null>(null);
   const [page, setPage] = useState<number>(0);
   const router = useRouter();
+  const [abortController, setAbortController] =
+    useState<AbortController | null>(null);
+
   const categoryMap: Record<string, string> = {
     ALL: "전체",
     PUBLIC: "공공시설",
@@ -130,6 +133,9 @@ export default function RecommendPage() {
     if ((isInitial && (latitude === null || longitude === null)) || !hasNext)
       return;
 
+    const controller = new AbortController();
+    setAbortController(controller);
+
     setLoading(true);
     try {
       const endpoint =
@@ -142,13 +148,14 @@ export default function RecommendPage() {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
         },
+        signal: controller.signal,
       });
 
       if (response.data.isSuccess) {
         const newRecommendations = response.data.results.placeList;
 
         setRecommendations(newRecommendations);
-        setCategoryList(response.data.results.categoryList || []); 
+        setCategoryList(response.data.results.categoryList || []);
         setHasNext(response.data.results.hasNext);
 
         console.log("Initial Recommendations:", newRecommendations);
@@ -165,49 +172,52 @@ export default function RecommendPage() {
 
   const fetchAdditionalData = async () => {
     if (!latitude || !longitude || loading || categoryList.length === 0) return;
-  
+
     const currentCategory = categoryList[currentCategoryIndex];
-    if (!currentCategory) return; // 카테고리가 유효하지 않을 경우 종료
-  
+    if (!currentCategory) return;
+
+    const controller = new AbortController();
+    setAbortController(controller);
+
     setLoading(true);
-  
+
     try {
       const endpoint =
         selectedTab === "강좌 추천"
           ? "/places/search/lectures"
           : "/places/search/facilities";
-  
+
       const response = await axios.get(endpoint, {
         params: {
           latitude,
           longitude,
           maxDistance: 10000,
-          category: currentCategory, // 현재 카테고리
+          category: currentCategory,
           sortType: "STAR_DESC",
           page,
         },
         headers: {
           Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
         },
+        signal: controller.signal,
       });
-  
+
       if (response.data.isSuccess) {
         const newRecommendations = response.data.results.placeList;
-  
-        setRecommendations((prev) => [...prev, ...newRecommendations]); // 기존 데이터에 추가
-        setHasNext(response.data.results.hasNext); // 다음 페이지 여부 업데이트
-  
+
+        setRecommendations((prev) => [...prev, ...newRecommendations]); 
+        setHasNext(response.data.results.hasNext);
+
         if (!response.data.results.hasNext) {
           const nextIndex = currentCategoryIndex + 1;
           if (nextIndex < categoryList.length) {
-            // 다음 카테고리로 이동
             setCurrentCategoryIndex(nextIndex);
-            setPage(0); // 페이지 초기화
+            setPage(0); 
           }
         } else {
-          setPage((prevPage) => prevPage + 1); // 같은 카테고리에서 페이지 증가
+          setPage((prevPage) => prevPage + 1); 
         }
-  
+
         console.log("Fetched Additional Data:", newRecommendations);
       } else {
         console.error("추가 데이터 요청 실패:", response.data.message);
@@ -218,7 +228,7 @@ export default function RecommendPage() {
       setLoading(false);
     }
   };
-  
+
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
@@ -231,16 +241,24 @@ export default function RecommendPage() {
         rootMargin: "100px",
       }
     );
-  
+
     if (loaderRef.current) {
       observer.observe(loaderRef.current);
     }
-  
+
     return () => {
       if (loaderRef.current) observer.unobserve(loaderRef.current);
     };
-  }, [loaderRef.current, loading, latitude, longitude, currentCategoryIndex, page, categoryList]);
-  
+  }, [
+    loaderRef.current,
+    loading,
+    latitude,
+    longitude,
+    currentCategoryIndex,
+    page,
+    categoryList,
+  ]);
+
   useEffect(() => {
     fetchLocation();
   }, []);
@@ -252,23 +270,70 @@ export default function RecommendPage() {
   // }, [latitude, longitude, selectedTab]);
 
   useEffect(() => {
-    console.log("Selected Tab changed to:", selectedTab);
+    if (abortController) {
+      abortController.abort();
+    }
+  
+    const controller = new AbortController();
+    setAbortController(controller);
+  
+    setLoading(true); 
     setRecommendations([]);
     setHasNext(true);
     setPage(0);
-    setCategoryList([]); 
+    setCategoryList([]);
     setCurrentCategoryIndex(0);
-    fetchRecommendations(true);
+  
+    const fetchData = async () => {
+      try {
+        const endpoint =
+          selectedTab === "강좌 추천"
+            ? "/recommend/search/lectures"
+            : "/recommend/search/facilities";
+  
+        const response = await axios.get(endpoint, {
+          params: { latitude, longitude },
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+          },
+          signal: controller.signal,
+        });
+  
+        if (response.data.isSuccess) {
+          const newRecommendations = response.data.results.placeList;
+          setRecommendations(newRecommendations);
+          setCategoryList(response.data.results.categoryList || []);
+          setHasNext(response.data.results.hasNext);
+        } else {
+          console.error("데이터를 가져오지 못했습니다:", response.data.message);
+        }
+      } catch (error) {
+        if (controller.signal.aborted) {
+          console.log("요청이 중단되었습니다.");
+        } else {
+          console.error("추천 데이터 API 호출 에러:", error);
+        }
+      } finally {
+        if (!controller.signal.aborted) {
+          setLoading(false);
+        }
+      }
+    };
+  
+    fetchData();
+  
+    return () => {
+      controller.abort(); 
+    };
   }, [selectedTab, latitude, longitude]);
-
+  
   const handleTabClick = (tab: "강좌 추천" | "시설 추천") => {
     setSelectedTab(tab);
-    setRecommendations([]);
-    setHasNext(true);
-    setPage(0);
-    setCategoryList([]); 
-    setCurrentCategoryIndex(0);
-
+    // setRecommendations([]);
+    // setHasNext(true);
+    // setPage(0);
+    // setCategoryList([]);
+    // setCurrentCategoryIndex(0);
   };
 
   const handleItemClick = (placeId: number) => {
