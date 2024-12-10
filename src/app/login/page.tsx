@@ -63,6 +63,12 @@ export default function Login() {
     }
   };
 
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === "Enter" && isLoginEnabled) {
+      handleLoginClick();
+    }
+  };
+
   const handleNaverLoginClick = () => {
     window.localStorage.removeItem("accessToken");
 
@@ -86,6 +92,7 @@ export default function Login() {
           placeholder="이메일을 입력해 주세요."
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          onKeyDown={handleKeyDown}
           className="flex h-13 px-4 py-3 items-center w-full rounded-lg bg-[#F8F9FA] text-[#8E9398] placeholder-[#8E9398] text-[14px] leading-[21px] font-normal"
         />
         <input
@@ -93,6 +100,7 @@ export default function Login() {
           placeholder="비밀번호를 입력해 주세요."
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          onKeyDown={handleKeyDown}
           className="flex h-13 px-4 py-3 items-center w-full rounded-lg bg-[#F8F9FA] text-[#8E9398] placeholder-[#8E9398] text-[14px] leading-[21px] font-normal"
         />
         {error && <p className="text-[#FF5252] text-[12px]">{error}</p>}
