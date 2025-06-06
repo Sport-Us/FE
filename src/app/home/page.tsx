@@ -635,7 +635,7 @@ export default function Home() {
 
     if (!window.naver) {
       const script = document.createElement("script");
-      script.src = `https://openapi.map.naver.com/openapi/v3/maps.js?ncpClientId=YOUR_CLIENT_ID`;
+      script.src = `https://openapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=YOUR_CLIENT_ID`;
       script.async = true;
       script.onload = loadMapWithCurrentLocation;
       document.head.appendChild(script);
@@ -649,7 +649,7 @@ export default function Home() {
 
     if (!window.naver) {
       const script = document.createElement("script");
-      script.src = `https://openapi.map.naver.com/openapi/v3/maps.js?ncpClientId=0hsynm0y56`;
+      script.src = `https://openapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=0hsynm0y56`;
       script.async = true;
       script.onload = loadMapWithCurrentLocation;
       document.head.appendChild(script);
