@@ -14,7 +14,7 @@ export default function Home() {
     window.localStorage.removeItem("accessToken");
 
     if (typeof window !== "undefined") {
-      window.location.href = "https://global-nest.store/oauth2/authorization/naver";
+      window.location.href = process.env.NEXT_PUBLIC_BASE_URL + "/oauth2/authorization/naver";
     }
   };
 
